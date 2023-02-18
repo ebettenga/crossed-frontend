@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
-export const useWebSocket = (recieveMessage: (message: string) => void) => {
+export const useWebSocket = (
+  recieveMessage: (message: string) => void
+) => {
   const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
 
   const sendMessage = (message: unknown) => {
@@ -31,7 +33,7 @@ export const useWebSocket = (recieveMessage: (message: string) => void) => {
 
     // @ts-ignore
     socket.on("connect", (data: any) => {
-      // socket.emit("join", {"room": 1});
+        console.log(data)
     });
 
     // @ts-ignore
@@ -40,11 +42,11 @@ export const useWebSocket = (recieveMessage: (message: string) => void) => {
     });
 
     socket.on("state", (state: any) => {
-        console.log(state)
+      console.log(state);
     });
 
     socket.on("message", (data: any) => {
-      recieveMessage(data.message)
+      recieveMessage(data.message);
     });
 
     return function cleanup() {

@@ -20,15 +20,21 @@ function App() {
     sendMessage({message, room: '1'});
     setMessage("")
   }
+
+  
+  const endNumber = parseInt(window.location.pathname?.split("/").at(-1) ?? "");
+  if (endNumber) {
+    joinRoom(endNumber)
+  }
+
   return (
     <div className="App">
       <h1>React/Flask App + socket.io</h1>
       <input type="text" value={message} onChange={updateMessage} />
       <button onClick={send}>Send Message</button>
       <button onClick={() => {getGameState()}}>Send Message</button>
-      <button onClick={() => {joinRoom(1)}}>Join Room</button>
-      { messages?.map((item) => {
-        return <div>{item}</div>
+      { messages?.map((item, key) => {
+        return <div key={key}>{item}</div>
       })}
     </div>
   );
