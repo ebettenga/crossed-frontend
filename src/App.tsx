@@ -2,7 +2,7 @@ import "./App.css";
 import { useWebSocket } from "./hooks/useWebSocket";
 
 function App() {
-  const {sendMessage, joinRoom} = useWebSocket()
+  const {sendMessage, joinRoom, getGameState} = useWebSocket()
 
 
 
@@ -10,6 +10,7 @@ function App() {
     <div className="App">
       <h1>React/Flask App + socket.io</h1>
       <button onClick={() => {sendMessage({data: "Test Message", room: 1})}}>Send Message</button>
+      <button onClick={() => {getGameState()}}>Send Message</button>
       <button onClick={() => {joinRoom(1)}}>Join Room</button>
     </div>
   );
