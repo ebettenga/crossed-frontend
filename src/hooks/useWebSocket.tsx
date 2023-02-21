@@ -1,9 +1,22 @@
+import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
-export const useWebSocket = (
-  recieveMessage: (message: string) => void
-) => {
+interface JoinRoomPayload {
+  difficulty: "easy" | "medium" | "hard";
+  user_id: number;
+}
+
+interface Guess {
+  x: number;
+  y: number;
+  room_id: number;
+  guess: string;
+  user_id: number;
+}
+
+export const useWebSocket = (recieveMessage: (message: string) => void) => {
+  const { user } = useAuth0();
   const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
 
   const sendMessage = (message: unknown) => {
@@ -12,51 +25,43 @@ export const useWebSocket = (
     }
   };
 
-  const getGameState = () => {
+  const joinRoom = (joinRoomObject: JoinRoomPayload) => {
     if (socketInstance) {
-      socketInstance.emit("game_state", "test");
+      socketInstance.emit("join", joinRoomObject);
     }
   };
 
-  const joinRoom = (roomId: number) => {
+  const guess = (guess: Guess) => {
     if (socketInstance) {
-      socketInstance.emit("join", { room: roomId });
+      socketInstance.emit("message", guess);
     }
   };
 
   useEffect(() => {
-    const socket = io("localhost:5000/", {
-      transports: ["websocket"],
-    });
+    if (user) {
+      const socket = io("localhost:5000/", {
+        transports: ["websocket"],
+      });
 
-    setSocketInstance(socket);
+      setSocketInstance(socket);
 
-    // @ts-ignore
-    socket.on("connect", (data: any) => {
-        console.log(data)
-    });
+      socket.on("room_joined", (data: any) => {
+        console.log(data);
+      });
 
-    // @ts-ignore
-    socket.on("disconnect", (data: AsyncGeneratorFunctionConstructor) => {
-      console.log(data);
-    });
+      socket.on("message", (data: any) => {
+        recieveMessage(data.message);
+      });
 
-    socket.on("state", (state: any) => {
-      console.log(state);
-    });
-
-    socket.on("message", (data: any) => {
-      recieveMessage(data.message);
-    });
-
-    return function cleanup() {
-      socket.disconnect();
-    };
-  }, []);
+      return function cleanup() {
+        socket.disconnect();
+      };
+    }
+  }, [user]);
 
   return {
     joinRoom,
     sendMessage,
-    getGameState,
+    guess,
   };
 };
