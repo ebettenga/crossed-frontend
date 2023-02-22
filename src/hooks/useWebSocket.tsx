@@ -58,7 +58,7 @@ export enum SquareType {
 export interface Square {
   id: number;
   squareType: SquareType
-  letter: string | null;
+  letter?: string;
   gridnumber: number | null;
   x: number;
   y: number;
@@ -72,6 +72,8 @@ export interface SessionData {
   createdAt: string;
   roomId: number;
   difficulty: "easy" | "medium" | "hard";
+  player_1_score: number;
+  player_2_score: number;
 }
 
 export interface Guess {
@@ -122,10 +124,8 @@ export const useWebSocket = () => {
         y: index - (x * data.crossword.row_size),
         squareType: getSquareType(item, isCircled, isCircledShaded),
         gridnumber:
-          data.crossword.gridnums[index] === 0
-            ? data.crossword.gridnums[index]
-            : null,
-        letter: item !== "*" ? item : null,
+          data.crossword.gridnums[index] !== 0 ? data.crossword.gridnums[index] : null,
+        letter: item !== "*" ? item : undefined,
         isHilighted: false,
       } as Square;
     });
@@ -150,6 +150,8 @@ export const useWebSocket = () => {
       createdAt: data.created_at,
       difficulty: data.difficulty,
       roomId: data.id,
+      player_1_score: data.player_1_score,
+      player_2_score: data.player_2_score
     });
   };
 

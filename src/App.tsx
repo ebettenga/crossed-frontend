@@ -1,5 +1,5 @@
 import { useAuth0 } from "@auth0/auth0-react";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import invariant from "tiny-invariant";
 import "./App.css";
 import {
@@ -122,7 +122,6 @@ export const GamePage = ({
   sessionData: SessionData;
   clues: { downClues: string[]; acrossClues: string[] };
 }) => {
-
   const guessLetter = (guessData: LetterGuess) => {
     guess({
       x: guessData.x,
@@ -131,53 +130,124 @@ export const GamePage = ({
       user_id: 1,
       guess: guessData.input,
     });
-
   };
 
   return (
-    <Board>
-      {board.map((squares) => (
-        <Row key={squares[0].x} squares={squares} guessLetter={guessLetter} />
-      ))}
-    </Board>
+    <GameContainer>
+      <div>
+        <Board>
+          {board.map((squares) => (
+            <Row
+              key={squares[0].x}
+              squares={squares}
+              guessLetter={guessLetter}
+            />
+          ))}
+        </Board>
+        <Score title={"Player 1 Score"} score={sessionData.player_1_score}></Score>
+        <Score title={"Player 2 Score"} score={sessionData.player_2_score}></Score>
+      </div>
+      <CluesList cluesList={clues.acrossClues} title={"Across"} />
+      <CluesList cluesList={clues.downClues} title={"Down"} />
+    </GameContainer>
   );
 };
+
+const Score: React.FC<{title: string, score: number}> = ({title, score}) => {
+  return (
+    <div>
+      <div>{title}: {score}</div>
+    </div>
+  )
+}
+
+const GameContainer: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => <div style={{ display: "flex", flexDirection: "row" }}>{children}</div>;
+
+export const CluesList: React.FC<{ title: string; cluesList: string[] }> = ({
+  title,
+  cluesList,
+}) => {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", margin: "0 20px" }}>
+      <ClueTitle title={title} />
+      {cluesList.map((clue) => (
+        <Clue clue={clue} />
+      ))}
+    </div>
+  );
+};
+
+export const Clue: React.FC<{ clue: string }> = ({ clue }) => <div>{clue}</div>;
+
+export const ClueTitle: React.FC<{ title: string }> = ({ title }) => (
+  <div style={{ fontSize: "2rem" }}>{title}</div>
+);
 
 export const Board: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => <div>{children}</div>;
 
-export const Row: React.FC<{ squares: Square[], guessLetter: (guessData: LetterGuess) => void }> = ({ squares, guessLetter }) => (
+export const Row: React.FC<{
+  squares: Square[];
+  guessLetter: (guessData: LetterGuess) => void;
+}> = ({ squares, guessLetter }) => (
   <div style={{ display: "flex" }}>
     {squares.map((square) => (
-      <SquareProvider key={square.id} square={square} guessLetter={guessLetter} />
+      <SquareProvider
+        key={`${square.id}${square.x}${square.y}`}
+        square={square}
+        guessLetter={guessLetter}
+      />
     ))}
   </div>
 );
 
-export const SquareContainer: React.FC<{ children: React.ReactNode, size: string | number | string & {} }> = ({
-  children, size
-}) => (
+const GridNumberWrapper: React.FC<{
+  gridNumber: number | null;
+}> = ({ gridNumber }) =>
+  gridNumber ? (
+    <>
+      <div style={{ position: "absolute", top: "2px", left: "4px" }}>
+        {gridNumber}
+      </div>
+    </>
+  ) : null;
+
+export const SquareContainer: React.FC<{
+  children?: React.ReactNode;
+  fillBlack?: boolean;
+  gridNumber?: number | null;
+}> = ({ children, fillBlack = false, gridNumber = null }) => (
   <div
     style={{
       margin: "-1px",
+      position: "relative",
       padding: ".75vw",
-      width: size,
-      height: size,
+      width: "20px",
+      height: "20px",
       border: "2px solid black",
       textAlign: "center",
+      backgroundColor: fillBlack ? "#000000" : undefined,
     }}
   >
-    {children}
+    <>
+      <GridNumberWrapper gridNumber={gridNumber}></GridNumberWrapper>
+      {children}
+    </>
   </div>
 );
 
-export const SquareProvider: React.FC<{ square: Square, guessLetter: (guessData: LetterGuess) => void }> = ({ square, guessLetter }) => {
+export const SquareProvider: React.FC<{
+  square: Square;
+  guessLetter: (guessData: LetterGuess) => void;
+}> = ({ square, guessLetter }) => {
   switch (square.squareType) {
     case SquareType.BLANK:
       return <BlankSquare square={square} guessLetter={guessLetter} />;
     case SquareType.BLACK:
-      return <BlankSquare square={square} guessLetter={guessLetter} />;
+      return <BlackSquare />;
     case SquareType.SOLVED:
       return <SolvedSquare square={square} />;
     case SquareType.CIRCLE_BLANK:
@@ -189,22 +259,39 @@ export const SquareProvider: React.FC<{ square: Square, guessLetter: (guessData:
   }
 };
 
-export const BlankSquare: React.FC<{ square: Square, guessLetter: (guessData: LetterGuess) => void }> = ({ square, guessLetter }) => {
-  const size = '30px';
-
+export const BlankSquare: React.FC<{
+  square: Square;
+  guessLetter: (guessData: LetterGuess) => void;
+}> = ({ square, guessLetter }) => {
+  const [currentLetter, setCurrentLetter] = useState("")
   return (
-    <SquareContainer size={size}>
-      <input onChange={(e) => guessLetter({x: square.x, y: square.y, input: e.target.value})} style={{border: 'none', height: size, width: size, textAlign: 'center'}} type="text" />
+    <SquareContainer gridNumber={square.gridnumber}>
+      <input
+        value={currentLetter}
+        onChange={(e) => {
+          guessLetter({ x: square.x, y: square.y, input: e.target.value })
+          setCurrentLetter("")
+        }}
+        style={{
+          border: "none",
+          height: "25px",
+          width: "25px",
+          textAlign: "center",
+        }}
+        type="text"
+      />
     </SquareContainer>
   );
 };
 
-
-export const SolvedSquare: React.FC<{square: Square}> = ({square}) => {
-  const size = '30px';
+export const SolvedSquare: React.FC<{ square: Square }> = ({ square }) => {
   return (
-    <SquareContainer size={size}>
+    <SquareContainer gridNumber={square.gridnumber}>
       <div>{square.letter}</div>
     </SquareContainer>
-  )
-}
+  );
+};
+
+export const BlackSquare: React.FC = () => {
+  return <SquareContainer fillBlack={true}></SquareContainer>;
+};
