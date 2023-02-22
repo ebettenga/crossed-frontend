@@ -2,12 +2,61 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
-interface JoinRoomPayload {
+interface CrossWord {
+  author: string;
+  circles: number[];
+  clues: { across: string[]; down: string[] };
+  col_size: number;
+  date: string;
+  dow: string;
+  gridnums: number[];
+  id: number;
+  jnote: string;
+  notepad: string;
+  row_size: number;
+  shadecircles: boolean;
+}
+
+interface Player {
+  profile_image: string;
+   email: string;
+   created_at: string; 
+   first_name: string
+   id: number;
+
+}
+
+interface RoomResponse {
+  message: Room;
+}
+
+export interface Room {
+created_at: string;
+crossword: CrossWord;
+difficulty: "easy" | "medium" | "hard"
+found_letters: string[];
+id: number;
+player_1: Player;
+player_1_score: number;
+player_2: Player;
+player_2_score: number;
+}
+
+
+export interface JoinRoomPayload {
   difficulty: "easy" | "medium" | "hard";
   user_id: number;
 }
 
-interface Guess {
+export interface Square {
+  isBlackCircle?: boolean;
+  isCircled?: boolean;
+  isBlack?: boolean;
+  letter?: string;
+  gridnumber?: number;
+}
+
+export interface Guess {
   x: number;
   y: number;
   room_id: number;
@@ -15,15 +64,30 @@ interface Guess {
   user_id: number;
 }
 
-export const useWebSocket = (recieveMessage: (message: string) => void) => {
+
+export const useWebSocket = () => {
   const { user } = useAuth0();
   const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
+  const [board, setBoard] = useState<Room | null>(null);
+  const [downClues, setDownClues] = useState<string[]>([])
 
-  const sendMessage = (message: unknown) => {
-    if (socketInstance) {
-      socketInstance.send(message);
-    }
-  };
+  const createSquares = (data: Room) => {
+    return data.found_letters.map((item: string, index) => {
+      return {
+        gridnumber: data.crossword.gridnums[index] === 0 ? data.crossword.gridnums[index] : null,
+        isBlack: item === ".",
+        isBlackCircle: data.crossword.shadecircles,
+        isCircled: data.crossword.circles ? data.crossword.circles[index] === 1 : null,
+        letter: item !== "*" ? item : null
+      } as Square
+    })
+  }
+
+  const formatBoard = (data: Room) => {
+    setBoard(data);
+    setDownClues(data.crossword.clues.down)  
+    console.log(createSquares(data))  
+  }
 
   const joinRoom = (joinRoomObject: JoinRoomPayload) => {
     if (socketInstance) {
@@ -45,12 +109,15 @@ export const useWebSocket = (recieveMessage: (message: string) => void) => {
 
       setSocketInstance(socket);
 
-      socket.on("room_joined", (data: any) => {
-        console.log(data);
+      socket.on("room_joined", (data: Room) => {
+        // TODO: marshall this data into something that looks like and actual board
+        // Two things
+        // A: we want a set of objects that make sense from this
+        formatBoard(data)
       });
 
-      socket.on("message", (data: any) => {
-        recieveMessage(data.message);
+      socket.on("message", (data: RoomResponse) => {
+        formatBoard(data.message)
       });
 
       return function cleanup() {
@@ -61,7 +128,10 @@ export const useWebSocket = (recieveMessage: (message: string) => void) => {
 
   return {
     joinRoom,
-    sendMessage,
     guess,
+    board,
+    state: {
+      downClues: downClues
+    }
   };
 };
