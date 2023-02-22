@@ -179,7 +179,7 @@ export const SquareProvider: React.FC<{ square: Square, guessLetter: (guessData:
     case SquareType.BLACK:
       return <BlankSquare square={square} guessLetter={guessLetter} />;
     case SquareType.SOLVED:
-      return <BlankSquare square={square} guessLetter={guessLetter} />;
+      return <SolvedSquare square={square} />;
     case SquareType.CIRCLE_BLANK:
       return <BlankSquare square={square} guessLetter={guessLetter} />;
     case SquareType.CIRCLE_BLACK:
@@ -198,3 +198,13 @@ export const BlankSquare: React.FC<{ square: Square, guessLetter: (guessData: Le
     </SquareContainer>
   );
 };
+
+
+export const SolvedSquare: React.FC<{square: Square}> = ({square}) => {
+  const size = '30px';
+  return (
+    <SquareContainer size={size}>
+      <div>{square.letter}</div>
+    </SquareContainer>
+  )
+}
