@@ -1,4 +1,3 @@
-import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
@@ -52,12 +51,12 @@ export enum SquareType {
   BLACK,
   CIRCLE_BLANK,
   CIRCLE_SOLVED,
-  CIRCLE_BLACK
+  CIRCLE_BLACK,
 }
 
 export interface Square {
   id: number;
-  squareType: SquareType
+  squareType: SquareType;
   letter?: string;
   gridnumber: number | null;
   x: number;
@@ -85,7 +84,6 @@ export interface Guess {
 }
 
 export const useWebSocket = () => {
-  const { user } = useAuth0();
   const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
   const [board, setBoard] = useState<Square[][] | null>(null);
   const [downClues, setDownClues] = useState<string[]>([]);
@@ -93,38 +91,46 @@ export const useWebSocket = () => {
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
 
   // this is pretty gross to read
-  const getSquareType = (letter_character: string, isCircled: boolean, isCircledShaded: boolean): SquareType => {
+  const getSquareType = (
+    letter_character: string,
+    isCircled: boolean,
+    isCircledShaded: boolean
+  ): SquareType => {
     const hasLetter = /[a-zA-z]/.test(letter_character);
     if (letter_character === ".") {
-      return SquareType.BLACK
+      return SquareType.BLACK;
     }
     if (hasLetter) {
-      return SquareType.SOLVED
+      return SquareType.SOLVED;
     }
     if (isCircled) {
       if (isCircledShaded) {
-        return SquareType.CIRCLE_BLACK
+        return SquareType.CIRCLE_BLACK;
       }
       if (hasLetter) {
-        return SquareType.CIRCLE_SOLVED
+        return SquareType.CIRCLE_SOLVED;
       }
-      return SquareType.CIRCLE_BLANK
+      return SquareType.CIRCLE_BLANK;
     }
-    return SquareType.BLANK
-  }
+    return SquareType.BLANK;
+  };
 
   const createSquares = (data: Room) => {
     return data.found_letters.map((item: string, index) => {
-      const isCircled = data.crossword.circles ? data.crossword.circles[index] === 1 : false;
+      const isCircled = data.crossword.circles
+        ? data.crossword.circles[index] === 1
+        : false;
       const isCircledShaded = data.crossword.shadecircles;
       const x = Math.floor(index / data.crossword.row_size);
       return {
         id: index,
         x,
-        y: index - (x * data.crossword.row_size),
+        y: index - x * data.crossword.row_size,
         squareType: getSquareType(item, isCircled, isCircledShaded),
         gridnumber:
-          data.crossword.gridnums[index] !== 0 ? data.crossword.gridnums[index] : null,
+          data.crossword.gridnums[index] !== 0
+            ? data.crossword.gridnums[index]
+            : null,
         letter: item !== "*" ? item : undefined,
         isHilighted: false,
       } as Square;
@@ -151,7 +157,7 @@ export const useWebSocket = () => {
       difficulty: data.difficulty,
       roomId: data.id,
       player_1_score: data.player_1_score,
-      player_2_score: data.player_2_score
+      player_2_score: data.player_2_score,
     });
   };
 
@@ -168,26 +174,24 @@ export const useWebSocket = () => {
   };
 
   useEffect(() => {
-    if (user) {
-      const socket = io("localhost:5000/", {
-        transports: ["websocket"],
-      });
+    const socket = io("192.168.4.25:5000/", {
+      transports: ["websocket"],
+    });
 
-      setSocketInstance(socket);
+    setSocketInstance(socket);
 
-      socket.on("room_joined", (data: Room) => {
-        formatRoom(data);
-      });
+    socket.on("room_joined", (data: Room) => {
+      formatRoom(data);
+    });
 
-      socket.on("message", (data: RoomResponse) => {
-        formatRoom(data.message);
-      });
+    socket.on("message", (data: RoomResponse) => {
+      formatRoom(data.message);
+    });
 
-      return function cleanup() {
-        socket.disconnect();
-      };
-    }
-  }, [user]);
+    return function cleanup() {
+      socket.disconnect();
+    };
+  }, []);
 
   return {
     joinRoom,
