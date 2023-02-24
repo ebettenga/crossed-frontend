@@ -75,6 +75,11 @@ export interface SessionData {
   difficulty: "easy" | "medium" | "hard";
 }
 
+export enum Orientation {
+  ACROSS,
+  DOWN,
+}
+
 export interface Guess {
   x: number;
   y: number;
@@ -214,9 +219,9 @@ export const useWebSocket = () => {
         const square = board[colIndex][rowIndex];
         if (square.squareType === SquareType.BLACK) {
           try {
-            currentClue = board[colIndex + 1][rowIndex].gridnumber!
+            currentClue = board[colIndex + 1][rowIndex].gridnumber!;
           } catch (error) {
-            currentClue = board[0][rowIndex +1].gridnumber!
+            currentClue = board[0][rowIndex + 1].gridnumber!;
           }
         } else {
           square.downQuestion = downClues.find(
@@ -226,6 +231,8 @@ export const useWebSocket = () => {
       });
     });
   };
+
+
 
   const formatRoom = (data: Room) => {
     const squares = createSquares(data);

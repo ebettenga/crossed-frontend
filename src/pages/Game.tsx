@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   Guess,
+  Orientation,
   Player,
   SessionData,
   Square,
@@ -11,6 +12,7 @@ interface LetterGuess {
   x: number;
   y: number;
   input: string;
+  squareId: number;
 }
 
 export const GamePage = ({
@@ -34,9 +36,14 @@ export const GamePage = ({
       user_id: 1,
       guess: guessData.input,
     });
+    navigateCursor(Orientation.ACROSS, guessData.squareId)
   };
 
-  console.log(board)
+  const navigateCursor = (orientation: Orientation, squareId: number) => {
+    if (orientation === Orientation.ACROSS) {
+      document.getElementById(`square-${squareId + 1}`)?.focus();
+    }
+  }
 
   return (
     <GameContainer>
@@ -186,8 +193,9 @@ export const BlankSquare: React.FC<{
     <SquareContainer gridNumber={square.gridnumber}>
       <input
         value={currentLetter}
+        id={`square-${square.id}`}
         onChange={(e) => {
-          guessLetter({ x: square.x, y: square.y, input: e.target.value });
+          guessLetter({ x: square.x, y: square.y, input: e.target.value, squareId: square.id });
           setCurrentLetter("");
         }}
         style={{
