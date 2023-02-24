@@ -149,10 +149,91 @@ export const useWebSocket = () => {
     return arrayToMatrix(squares, row_len);
   };
 
+  const createClueArray = (
+    clues: string[]
+  ): { number: number; hint: string }[] => {
+    return clues.map((clue) => {
+      const clueArray = clue.split(".");
+      const clueNumber = parseInt(clueArray[0]);
+      const hint = clue;
+      return { number: clueNumber, hint };
+    });
+  };
+
+  const addCluesToSquares = (
+    board: Square[][],
+    { across, down }: { across: string[]; down: string[] }
+  ) => {
+    populateAcrossClues(board, across);
+    populateDownClues(board, down);
+  };
+
+  const shouldIncrementAcross = (
+    currentIndex: number,
+    square: Square,
+    previousSquare: Square | undefined
+  ): number => {
+    if (previousSquare?.squareType === SquareType.BLACK) return currentIndex;
+    if (previousSquare && square.x !== previousSquare?.x)
+      return currentIndex + 1;
+    if (square.squareType === SquareType.BLACK) return currentIndex + 1;
+    return currentIndex;
+  };
+
+  const getNextDownClue = (
+    currentIndex: number,
+    square: Square,
+    previousSquare: Square | undefined
+  ): number => {
+    if (previousSquare?.squareType === SquareType.BLACK) return currentIndex;
+    if (previousSquare && square.y !== previousSquare?.y)
+      return currentIndex + 1;
+    if (square.squareType === SquareType.BLACK) return currentIndex + 1;
+    return currentIndex;
+  };
+
+  const populateAcrossClues = (board: Square[][], clues: string[]) => {
+    const acrossClues = createClueArray(clues);
+    let currentClue = 0;
+    let prevSquare: Square | undefined;
+    board.forEach((row, _) => {
+      row.forEach((square, _) => {
+        currentClue = shouldIncrementAcross(currentClue, square, prevSquare);
+        if (square.squareType !== SquareType.BLACK)
+          square.acrossQuestion = acrossClues[currentClue].hint;
+        prevSquare = square;
+      });
+    });
+  };
+
+  const populateDownClues = (board: Square[][], clues: string[]) => {
+    const downClues = createClueArray(clues);
+    let currentClue = 0;
+    board.forEach((row, rowIndex) => {
+      row.forEach((_, colIndex) => {
+        const square = board[colIndex][rowIndex];
+        if (square.squareType === SquareType.BLACK) {
+          try {
+            currentClue = board[colIndex + 1][rowIndex].gridnumber!
+          } catch (error) {
+            currentClue = board[0][rowIndex +1].gridnumber!
+          }
+        } else {
+          square.downQuestion = downClues.find(
+            (clue) => clue.number == currentClue
+          )?.hint;
+        }
+      });
+    });
+  };
+
   const formatRoom = (data: Room) => {
-    setBoard(createBoard(createSquares(data), data.crossword.row_size));
-    setDownClues(data.crossword.clues.down);
+    const squares = createSquares(data);
+    const board = createBoard(squares, data.crossword.row_size);
+    addCluesToSquares(board, data.crossword.clues);
     setAcrossClues(data.crossword.clues.across);
+    setDownClues(data.crossword.clues.down);
+    setBoard(board);
     setSessionData({
       createdAt: data.created_at,
       difficulty: data.difficulty,

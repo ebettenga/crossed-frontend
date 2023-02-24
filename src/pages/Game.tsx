@@ -36,6 +36,8 @@ export const GamePage = ({
     });
   };
 
+  console.log(board)
+
   return (
     <GameContainer>
       <div>
@@ -49,7 +51,13 @@ export const GamePage = ({
           ))}
         </Board>
         {players.map((player) => {
-          return <Score title={player.first_name} score={player.score}></Score>;
+          return (
+            <Score
+              key={`${player.first_name}${player.id}`}
+              title={player.first_name}
+              score={player.score}
+            ></Score>
+          );
         })}
       </div>
       <CluesList cluesList={clues.acrossClues} title={"Across"} />
@@ -83,7 +91,7 @@ export const CluesList: React.FC<{ title: string; cluesList: string[] }> = ({
     <div style={{ display: "flex", flexDirection: "column", margin: "0 20px" }}>
       <ClueTitle title={title} />
       {cluesList.map((clue) => (
-        <Clue clue={clue} />
+        <Clue key={clue} clue={clue} />
       ))}
     </div>
   );
