@@ -16,12 +16,14 @@ interface CrossWord {
   shadecircles: boolean;
 }
 
-interface Player {
+export interface Player {
   profile_image: string;
   email: string;
   created_at: string;
   first_name: string;
   id: number;
+  score: number;
+  isUser: boolean;
 }
 
 interface RoomResponse {
@@ -71,8 +73,6 @@ export interface SessionData {
   createdAt: string;
   roomId: number;
   difficulty: "easy" | "medium" | "hard";
-  player_1_score: number;
-  player_2_score: number;
 }
 
 export interface Guess {
@@ -89,6 +89,7 @@ export const useWebSocket = () => {
   const [downClues, setDownClues] = useState<string[]>([]);
   const [acrossClues, setAcrossClues] = useState<string[]>([]);
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
+  const [players, setPlayers] = useState<Player[]>([]);
 
   // this is pretty gross to read
   const getSquareType = (
@@ -156,9 +157,11 @@ export const useWebSocket = () => {
       createdAt: data.created_at,
       difficulty: data.difficulty,
       roomId: data.id,
-      player_1_score: data.player_1_score,
-      player_2_score: data.player_2_score,
     });
+    setPlayers([
+      { ...data.player_1, score: data.player_1_score },
+      { ...data.player_2, score: data.player_2_score },
+    ]);
   };
 
   const joinRoom = (joinRoomObject: JoinRoomPayload) => {
@@ -198,6 +201,7 @@ export const useWebSocket = () => {
     guess,
     board,
     sessionData,
+    players,
     clues: {
       downClues,
       acrossClues,
