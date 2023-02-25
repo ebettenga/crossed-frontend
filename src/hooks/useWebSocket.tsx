@@ -248,10 +248,9 @@ export const useWebSocket = () => {
       colSize: data.crossword.col_size,
       rowSize: data.crossword.row_size,
     });
-    setPlayers([
-      { ...data.player_1, score: data.player_1_score },
-      { ...data.player_2, score: data.player_2_score },
-    ]);
+    const players = [{ ...data.player_1, score: data.player_1_score }]
+    if(data.player_2) players.push({ ...data.player_2, score: data.player_2_score })
+    setPlayers(players);
   };
 
   const joinRoom = (joinRoomObject: JoinRoomPayload) => {
@@ -267,7 +266,7 @@ export const useWebSocket = () => {
   };
 
   useEffect(() => {
-    const socket = io("192.168.4.25:5000/", {
+    const socket = io("localhost:5000/", {
       transports: ["websocket"],
     });
 
