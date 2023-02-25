@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Dispatch, useState } from "react";
 import {
   Guess,
   Orientation,
@@ -28,6 +28,9 @@ export const GamePage = ({
   sessionData: SessionData;
   clues: { downClues: string[]; acrossClues: string[] };
 }) => {
+  const [orientationDirection, setOrientationDirection] = useState<Orientation>(
+    Orientation.ACROSS
+  );
   const guessLetter = (guessData: LetterGuess) => {
     guess({
       x: guessData.x,
@@ -36,14 +39,19 @@ export const GamePage = ({
       user_id: 1,
       guess: guessData.input,
     });
-    navigateCursor(Orientation.ACROSS, guessData.squareId)
+    navigateCursor(orientationDirection, guessData.squareId);
   };
 
   const navigateCursor = (orientation: Orientation, squareId: number) => {
     if (orientation === Orientation.ACROSS) {
       document.getElementById(`square-${squareId + 1}`)?.focus();
     }
-  }
+    if (orientation === Orientation.DOWN) {
+      document
+        .getElementById(`square-${squareId + sessionData.rowSize}`)
+        ?.focus();
+    }
+  };
 
   return (
     <GameContainer>
@@ -66,10 +74,36 @@ export const GamePage = ({
             ></Score>
           );
         })}
+        <OrientationToggle
+          orientationDirection={orientationDirection}
+          setOrientationDirection={setOrientationDirection}
+        />
       </div>
       <CluesList cluesList={clues.acrossClues} title={"Across"} />
       <CluesList cluesList={clues.downClues} title={"Down"} />
     </GameContainer>
+  );
+};
+
+const OrientationToggle: React.FC<{
+  orientationDirection: Orientation;
+  setOrientationDirection: Dispatch<React.SetStateAction<Orientation>>;
+}> = ({ orientationDirection, setOrientationDirection }) => {
+  const setOrientation = () => {
+    setOrientationDirection((orientation) => {
+      return orientation === Orientation.ACROSS
+        ? Orientation.DOWN
+        : Orientation.ACROSS;
+    });
+  };
+
+  return (
+    <div>
+      <div>{orientationDirection}</div>
+      <button id="toggleOrientationButton" onClick={setOrientation}>
+        Toggle Orientation
+      </button>
+    </div>
   );
 };
 
@@ -195,7 +229,12 @@ export const BlankSquare: React.FC<{
         value={currentLetter}
         id={`square-${square.id}`}
         onChange={(e) => {
-          guessLetter({ x: square.x, y: square.y, input: e.target.value, squareId: square.id });
+          guessLetter({
+            x: square.x,
+            y: square.y,
+            input: e.target.value,
+            squareId: square.id,
+          });
           setCurrentLetter("");
         }}
         style={{

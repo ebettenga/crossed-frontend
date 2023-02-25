@@ -73,11 +73,13 @@ export interface SessionData {
   createdAt: string;
   roomId: number;
   difficulty: "easy" | "medium" | "hard";
+  colSize: number;
+  rowSize: number;
 }
 
 export enum Orientation {
-  ACROSS,
-  DOWN,
+  ACROSS = "ACROSS",
+  DOWN = "DOWN",
 }
 
 export interface Guess {
@@ -232,8 +234,6 @@ export const useWebSocket = () => {
     });
   };
 
-
-
   const formatRoom = (data: Room) => {
     const squares = createSquares(data);
     const board = createBoard(squares, data.crossword.row_size);
@@ -245,6 +245,8 @@ export const useWebSocket = () => {
       createdAt: data.created_at,
       difficulty: data.difficulty,
       roomId: data.id,
+      colSize: data.crossword.col_size,
+      rowSize: data.crossword.row_size,
     });
     setPlayers([
       { ...data.player_1, score: data.player_1_score },
