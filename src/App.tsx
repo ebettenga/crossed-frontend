@@ -16,8 +16,9 @@ export enum PageState {
   PLAYING,
 }
 
+
 function App() {
-  const [pageState, setPageState] = useState(PageState.JOINING);
+  const [pageState, setPageState] = useState(PageState.LANDING);
   const { guess, players, board, clues, sessionData, joinRoom } = useWebSocket();
 
   switch (pageState) {

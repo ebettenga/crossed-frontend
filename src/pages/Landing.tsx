@@ -1,43 +1,33 @@
-import { Dispatch, SetStateAction } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import { PageState } from "../App";
-
-
+import { useCurrentUser } from "../domains/auth/user/context";
 
 export const LandingPage: React.FC<{
-    setPageState: Dispatch<SetStateAction<PageState>>;
-  }> = ({ setPageState }) => {
-    // const { user, loginWithPopup, getAccessTokenSilently } = useAuth0();
-  
-    // const login = () => {
-    //   loginWithPopup({
-    //     authorizationParams: {
-    //       audience: import.meta.env.VITE_APP_AUTH0_AUDIENCE,
-    //       redirect_uri: import.meta.env.VITE_APP_AUTH0_CALLBACK_URL,
-    //     },
-    //   }).then((data) => {
-    //     setPageState(PageState.JOINING);
-    //   });
-    // };
-  
-    // const makeRequest = async (url: string) => {
-    //   return getAccessTokenSilently().then((token) => {
-    //     return fetch(url, {
-    //       headers: [["Authorization", `Bearer ${token}`]],
-    //     }).then((data) => {
-    //       return data.json().then((data) => {
-    //         return data;
-    //       });
-    //     });
-    //   });
-    // };
-  
-    return (
-      <div>
-        Hello
-        {/* <div>{user?.email}</div>
-        <button onClick={login}>Login</button> */}
-      </div>
-    );
+  setPageState: Dispatch<SetStateAction<PageState>>;
+}> = ({ setPageState }) => {
+  const user = useCurrentUser();
+
+  return <div>{!user ? <Login /> : <Start setPageState={setPageState} />}</div>;
+};
+
+const Login: React.FC = () => {
+  const { loginWithPopup } = useAuth0();
+
+  const login = () => {
+    loginWithPopup({
+      authorizationParams: {
+        audience: import.meta.env.VITE_APP_AUTH0_AUDIENCE,
+        redirect_uri: import.meta.env.VITE_APP_AUTH0_CALLBACK_URL,
+      },
+    });
   };
-  
-  
+
+  return <button onClick={login}>Login</button>;
+};
+
+const Start: React.FC<{
+  setPageState: Dispatch<SetStateAction<PageState>>;
+}> = ({ setPageState }) => {
+  return <button onClick={() => setPageState(PageState.JOINING)}>Start</button>;
+};

@@ -1,6 +1,5 @@
 import { Auth0Provider, AppState } from "@auth0/auth0-react";
 import React, { PropsWithChildren } from "react";
-import { useNavigate } from "react-router-dom";
 
 interface Auth0ProviderWithNavigateProps {
   children: React.ReactNode;
@@ -9,21 +8,10 @@ interface Auth0ProviderWithNavigateProps {
 export const Auth0ProviderWithNavigate = ({
   children,
 }: PropsWithChildren<Auth0ProviderWithNavigateProps>): JSX.Element | null => {
-  const navigate = useNavigate();
- 
   const domain = import.meta.env.VITE_APP_AUTH0_DOMAIN;
   const clientId = import.meta.env.VITE_APP_AUTH0_CLIENT_ID;
   const redirectUri = import.meta.env.VITE_APP_AUTH0_CALLBACK_URL;
   const audience = import.meta.env.VITE_APP_AUTH0_AUDIENCE;
-
-  const onRedirectCallback = (appState?: AppState) => {
-    navigate(appState?.returnTo || window.location.pathname);
-  };
-
-  if (!(domain && clientId && redirectUri && audience)) {
-    console.log("missing items")
-    return null;
-  }
 
   return (
     <Auth0Provider
@@ -33,7 +21,6 @@ export const Auth0ProviderWithNavigate = ({
         audience: audience,
         redirect_uri: redirectUri,
       }}
-      onRedirectCallback={onRedirectCallback}
     >
       {children}
     </Auth0Provider>
