@@ -1,14 +1,16 @@
 import { useAuth0 } from "@auth0/auth0-react";
-import { Dispatch, SetStateAction, useEffect } from "react";
+import { Dispatch, ReactNode, SetStateAction } from "react";
 import { PageState } from "../App";
-import { useCurrentUser } from "../domains/auth/user/context";
+import { Button } from "../domains/components/button";
+import { PageContainer, Spacer } from "../domains/components/spacing";
+import { useCurrentUser } from "../domains/user/context";
 
 export const LandingPage: React.FC<{
   setPageState: Dispatch<SetStateAction<PageState>>;
 }> = ({ setPageState }) => {
   const user = useCurrentUser();
 
-  return <div>{!user ? <Login /> : <Start setPageState={setPageState} />}</div>;
+  return !user ? <Login /> : <Start setPageState={setPageState} />;
 };
 
 const Login: React.FC = () => {
@@ -23,11 +25,28 @@ const Login: React.FC = () => {
     });
   };
 
-  return <button onClick={login}>Login</button>;
+  return (
+    <PageContainer>
+      <HomeTitle />
+      <Spacer margin={"5rem"} />
+      <Button onClick={login}>Login</Button>
+    </PageContainer>
+  );
 };
 
 const Start: React.FC<{
   setPageState: Dispatch<SetStateAction<PageState>>;
 }> = ({ setPageState }) => {
-  return <button onClick={() => setPageState(PageState.JOINING)}>Start</button>;
+  return (
+    <PageContainer>
+      <HomeTitle />
+      <Spacer margin={"5rem"} />
+      <Button onClick={() => setPageState(PageState.JOINING)}>Start</Button>
+    </PageContainer>
+  );
 };
+
+
+
+const HomeTitle = () => <h1>Crossed</h1>;
+

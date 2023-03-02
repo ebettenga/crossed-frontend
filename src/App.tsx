@@ -1,9 +1,8 @@
 import { useState } from "react";
 import invariant from "tiny-invariant";
 import "./App.css";
-import {
-  useWebSocket,
-} from "./hooks/useWebSocket";
+import { useCurrentUser } from "./domains/user/context";
+import { useWebSocket } from "./domains/socket/useWebSocket";
 import { GamePage } from "./pages/Game";
 import { JoinRoom } from "./pages/Join";
 import { LandingPage } from "./pages/Landing";
@@ -16,18 +15,33 @@ export enum PageState {
   PLAYING,
 }
 
-
 function App() {
   const [pageState, setPageState] = useState(PageState.LANDING);
-  const { guess, players, board, clues, sessionData, joinRoom } = useWebSocket();
+  const { guess, players, board, clues, sessionData, joinRoom } =
+    useWebSocket();
+  const user = useCurrentUser();
+
+  if (!user) return <LandingPage setPageState={setPageState} />;
 
   switch (pageState) {
     case PageState.LANDING:
       return <LandingPage setPageState={setPageState} />;
-    case PageState.WAITING:
-        return <WaitingPage setPageState={setPageState} players={players} sessionData={sessionData}/>
     case PageState.JOINING:
-      return <JoinRoom joinRoom={joinRoom} setPageState={setPageState} sessionData={sessionData}/>;
+      return (
+        <JoinRoom
+          joinRoom={joinRoom}
+          setPageState={setPageState}
+          sessionData={sessionData}
+        />
+      );
+    case PageState.WAITING:
+      return (
+        <WaitingPage
+          setPageState={setPageState}
+          players={players}
+          sessionData={sessionData}
+        />
+      );
     case PageState.PLAYING:
       invariant(board, "board must be present");
       invariant(sessionData, "sessionData must be present");

@@ -3,7 +3,7 @@ import { PageState } from "../App";
 import {
     Player,
     SessionData
-  } from "../hooks/useWebSocket";
+  } from "../domains/socket/useWebSocket";
 
 
 

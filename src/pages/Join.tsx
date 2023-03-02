@@ -1,7 +1,10 @@
-import { Dispatch, SetStateAction, useEffect } from "react";
+import { Dispatch, ReactNode, SetStateAction, useEffect } from "react";
 import { PageState } from "../App";
-import { useCurrentUser } from "../domains/auth/user/context";
-import { JoinRoomPayload, SessionData } from "../hooks/useWebSocket";
+import { useCurrentUser } from "../domains/user/context";
+import { JoinRoomPayload, SessionData } from "../domains/socket/useWebSocket";
+import { Button } from "../domains/components/button";
+import invariant from "tiny-invariant";
+import { PageContainer, Spacer } from "../domains/components/spacing";
 
 export const JoinRoom = ({
   sessionData,
@@ -12,8 +15,6 @@ export const JoinRoom = ({
   joinRoom: (joinRoomPayload: JoinRoomPayload) => void;
   sessionData: SessionData | null;
 }) => {
-  const user = useCurrentUser();
-
   useEffect(() => {
     if (sessionData?.roomId) {
       setPageState(PageState.WAITING);
@@ -21,18 +22,59 @@ export const JoinRoom = ({
   }, [sessionData?.roomId]);
 
   return (
-    <div>
-      <div>{user?.email}</div>
-      <button onClick={() => joinRoom({ difficulty: "easy", user_id: 1 })}>
-        Join Room
-      </button>
-      <button
-        onClick={() => {
-          setPageState(PageState.PLAYING);
-        }}
-      >
-        Start Game
-      </button>
-    </div>
+    <PageContainer>
+      <JoinRoomTitle />
+      <Spacer margin={"10vh"} />
+      <DifficultlyButtonContainer>
+        <SelectDifficultyButton
+          difficulty="easy"
+          joinRoom={joinRoom}
+          title={"Easy"}
+        />
+        <SelectDifficultyButton
+          difficulty="medium"
+          joinRoom={joinRoom}
+          title={"Medium"}
+        />
+        <SelectDifficultyButton
+          difficulty="hard"
+          joinRoom={joinRoom}
+          title={"Hard"}
+        />
+      </DifficultlyButtonContainer>
+    </PageContainer>
+  );
+};
+
+const JoinRoomTitle = () => <h1>Select Difficulty</h1>;
+
+const DifficultlyButtonContainer: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => (
+  <div
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+    }}
+  >
+    {children}
+  </div>
+);
+
+const SelectDifficultyButton: React.FC<{
+  joinRoom: (joinRoomPayload: JoinRoomPayload) => void;
+  difficulty: "easy" | "medium" | "hard";
+  title: "Easy" | "Medium" | "Hard";
+}> = ({ joinRoom, difficulty, title }) => {
+  const user = useCurrentUser();
+  invariant(user, "user not found during difficulty selection");
+  return (
+    <>
+      <Button onClick={() => joinRoom({ difficulty, user_id: user.id })}>
+        {title}
+      </Button>
+      <Spacer margin={"5vh"} />
+    </>
   );
 };

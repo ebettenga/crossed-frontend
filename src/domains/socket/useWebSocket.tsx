@@ -64,7 +64,6 @@ export interface Square {
   x: number;
   y: number;
   isHilighted: boolean;
-  // planting the seed for these down and across questions in here, but finding the right quesetion is hard
   downQuestion?: string;
   acrossQuestion?: string;
 }
@@ -187,18 +186,6 @@ export const useWebSocket = () => {
     return currentIndex;
   };
 
-  const getNextDownClue = (
-    currentIndex: number,
-    square: Square,
-    previousSquare: Square | undefined
-  ): number => {
-    if (previousSquare?.squareType === SquareType.BLACK) return currentIndex;
-    if (previousSquare && square.y !== previousSquare?.y)
-      return currentIndex + 1;
-    if (square.squareType === SquareType.BLACK) return currentIndex + 1;
-    return currentIndex;
-  };
-
   const populateAcrossClues = (board: Square[][], clues: string[]) => {
     const acrossClues = createClueArray(clues);
     let currentClue = 0;
@@ -248,8 +235,9 @@ export const useWebSocket = () => {
       colSize: data.crossword.col_size,
       rowSize: data.crossword.row_size,
     });
-    const players = [{ ...data.player_1, score: data.player_1_score }]
-    if(data.player_2) players.push({ ...data.player_2, score: data.player_2_score })
+    const players = [{ ...data.player_1, score: data.player_1_score }];
+    if (data.player_2)
+      players.push({ ...data.player_2, score: data.player_2_score });
     setPlayers(players);
   };
 
@@ -266,24 +254,27 @@ export const useWebSocket = () => {
   };
 
   useEffect(() => {
-    const socket = io("localhost:5000/", {
-      transports: ["websocket"],
-    });
+    if (!socketInstance) {
+      const socket = io("localhost:5000/", {
+        transports: ["websocket"],
+      });
 
-    setSocketInstance(socket);
+      setSocketInstance(socket);
+    }
+    if (socketInstance) {
+      socketInstance.on("room_joined", (data: Room) => {
+        formatRoom(data);
+      });
 
-    socket.on("room_joined", (data: Room) => {
-      formatRoom(data);
-    });
-
-    socket.on("message", (data: RoomResponse) => {
-      formatRoom(data.message);
-    });
+      socketInstance.on("message", (data: RoomResponse) => {
+        formatRoom(data.message);
+      });
+    }
 
     return function cleanup() {
-      socket.disconnect();
+      socketInstance?.disconnect();
     };
-  }, []);
+  }, [socketInstance]);
 
   return {
     joinRoom,

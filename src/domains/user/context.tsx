@@ -1,5 +1,14 @@
 import React from "react";
-import { User } from "./user";
+
+
+export interface User {
+  id: number;
+created_at: string;
+first_name: string;
+last_name: string;
+email: string;
+profile_image: URL;
+}
 
 export const UserContext = React.createContext<User | undefined>(undefined);
 
