@@ -1,4 +1,5 @@
-import { Dispatch, useState } from "react";
+import { ReactNode, useState } from "react";
+import { Spacer } from "../domains/components/spacing";
 import {
   Guess,
   Orientation,
@@ -18,12 +19,13 @@ interface LetterGuess {
 export const GamePage = ({
   guess,
   board,
+  getSquareById,
   players,
-  clues,
   sessionData,
 }: {
   guess: (guess: Guess) => void;
   board: Square[][];
+  getSquareById: (squareId: number) => Square | undefined;
   players: Player[];
   sessionData: SessionData;
   clues: { downClues: string[]; acrossClues: string[] };
@@ -31,6 +33,20 @@ export const GamePage = ({
   const [orientationDirection, setOrientationDirection] = useState<Orientation>(
     Orientation.ACROSS
   );
+  const [selectedSquare, setSelectedSquare] = useState<Square>(board[0][0]);
+
+  const handleSquareClick = (square: Square) => {
+    if (square !== selectedSquare) {
+      setSelectedSquare(square);
+    } else {
+      setOrientationDirection((currentDirection) =>
+        currentDirection === Orientation.ACROSS
+          ? Orientation.DOWN
+          : Orientation.ACROSS
+      );
+    }
+  };
+
   const guessLetter = (guessData: LetterGuess) => {
     guess({
       x: guessData.x,
@@ -42,68 +58,95 @@ export const GamePage = ({
     navigateCursor(orientationDirection, guessData.squareId);
   };
 
-  const navigateCursor = (orientation: Orientation, squareId: number) => {
-    if (orientation === Orientation.ACROSS) {
-      document.getElementById(`square-${squareId + 1}`)?.focus();
+  const getNextSquareElement = (start: number, increment: number) => {
+    let elementReference: HTMLElement | null = null;
+    let counter = start + increment;
+    while (elementReference === null) {
+      elementReference = document.getElementById(`square-${counter}`);
+      if (!elementReference) {
+        counter += increment;
+      }
+      if (counter > 300) {
+        break;
+      }
     }
-    if (orientation === Orientation.DOWN) {
-      document
-        .getElementById(`square-${squareId + sessionData.rowSize}`)
-        ?.focus();
+    return { elementReference, newSquareId: counter };
+  };
+
+  const getNextElementByOrientation = (
+    orientation: Orientation,
+    squareId: number
+  ) => {
+    let nextElementData;
+    if (orientation === Orientation.ACROSS) {
+      nextElementData = getNextSquareElement(squareId, 1);
+    } else {
+      nextElementData = getNextSquareElement(squareId, sessionData.rowSize);
+    }
+    return nextElementData;
+  };
+
+  const navigateCursor = (orientation: Orientation, squareId: number) => {
+    const nextElementData = getNextElementByOrientation(orientation, squareId);
+
+    nextElementData.elementReference?.focus();
+    const newSquare = getSquareById(nextElementData.newSquareId);
+    if (newSquare && selectedSquare.id !== newSquare?.id) {
+      setSelectedSquare(newSquare);
     }
   };
 
   return (
     <GameContainer>
-      <div>
-        <Board>
-          {board.map((squares) => (
-            <Row
-              key={squares[0].x}
-              squares={squares}
-              guessLetter={guessLetter}
-            />
-          ))}
-        </Board>
-        {players.map((player) => {
-          return (
-            <Score
-              key={`${player.first_name}${player.id}`}
-              title={player.first_name}
-              score={player.score}
-            ></Score>
-          );
-        })}
-        <OrientationToggle
-          orientationDirection={orientationDirection}
-          setOrientationDirection={setOrientationDirection}
-        />
-      </div>
-      <CluesList cluesList={clues.acrossClues} title={"Across"} />
-      <CluesList cluesList={clues.downClues} title={"Down"} />
+      {players.map((player) => {
+        return (
+          <Score
+            key={`${player.first_name}${player.id}`}
+            title={player.first_name}
+            score={player.score}
+          ></Score>
+        );
+      })}
+      <Board>
+        {board.map((squares) => (
+          <Row
+            key={squares[0].x}
+            squares={squares}
+            guessLetter={guessLetter}
+            handleSquareClick={handleSquareClick}
+          />
+        ))}
+      </Board>
+      <Spacer margin={".3rem"} />
+      <ClueView square={selectedSquare} direction={orientationDirection} />
     </GameContainer>
   );
 };
 
-const OrientationToggle: React.FC<{
-  orientationDirection: Orientation;
-  setOrientationDirection: Dispatch<React.SetStateAction<Orientation>>;
-}> = ({ orientationDirection, setOrientationDirection }) => {
-  const setOrientation = () => {
-    setOrientationDirection((orientation) => {
-      return orientation === Orientation.ACROSS
-        ? Orientation.DOWN
-        : Orientation.ACROSS;
-    });
-  };
+const ClueViewContainer: React.FC<{ children: ReactNode }> = ({ children }) => (
+  <div
+    style={{ display: "flex", alignItems: "center", flexDirection: "column" }}
+  >
+    {children}
+  </div>
+);
 
+const ClueHeader: React.FC<{ children: ReactNode }> = ({ children }) => (
+  <div>{children}</div>
+);
+
+const ClueView: React.FC<{ square: Square; direction: Orientation }> = ({
+  square,
+  direction,
+}) => {
   return (
-    <div>
-      <div>{orientationDirection}</div>
-      <button id="toggleOrientationButton" onClick={setOrientation}>
-        Toggle Orientation
-      </button>
-    </div>
+    <ClueViewContainer>
+      <ClueHeader>{direction.toUpperCase()}</ClueHeader>
+      <Spacer margin={".3rem"} />
+      {direction === Orientation.ACROSS
+        ? square.acrossQuestion
+        : square.downQuestion}
+    </ClueViewContainer>
   );
 };
 
@@ -122,42 +165,35 @@ const Score: React.FC<{ title: string; score: number }> = ({
 
 const GameContainer: React.FC<{ children: React.ReactNode }> = ({
   children,
-}) => <div style={{ display: "flex", flexDirection: "row" }}>{children}</div>;
-
-export const CluesList: React.FC<{ title: string; cluesList: string[] }> = ({
-  title,
-  cluesList,
-}) => {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", margin: "0 20px" }}>
-      <ClueTitle title={title} />
-      {cluesList.map((clue) => (
-        <Clue key={clue} clue={clue} />
-      ))}
-    </div>
-  );
-};
-
-export const Clue: React.FC<{ clue: string }> = ({ clue }) => <div>{clue}</div>;
-
-export const ClueTitle: React.FC<{ title: string }> = ({ title }) => (
-  <div style={{ fontSize: "2rem" }}>{title}</div>
+}) => (
+  <div
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+    }}
+  >
+    {children}
+  </div>
 );
 
 export const Board: React.FC<{ children: React.ReactNode }> = ({
   children,
-}) => <div>{children}</div>;
+}) => <div style={{ padding: "5px" }}>{children}</div>;
 
 export const Row: React.FC<{
   squares: Square[];
   guessLetter: (guessData: LetterGuess) => void;
-}> = ({ squares, guessLetter }) => (
+  handleSquareClick: (square: Square) => void;
+}> = ({ squares, guessLetter, handleSquareClick }) => (
   <div style={{ display: "flex" }}>
     {squares.map((square) => (
       <SquareProvider
         key={`${square.id}${square.x}${square.y}`}
         square={square}
         guessLetter={guessLetter}
+        handleSquareClick={handleSquareClick}
       />
     ))}
   </div>
@@ -168,25 +204,45 @@ const GridNumberWrapper: React.FC<{
 }> = ({ gridNumber }) =>
   gridNumber ? (
     <>
-      <div style={{ position: "absolute", top: "2px", left: "4px" }}>
+      <div
+        style={{
+          position: "absolute",
+          top: "2px",
+          left: "4px",
+          fontSize: ".6rem",
+        }}
+      >
         {gridNumber}
       </div>
     </>
   ) : null;
 
-export const SquareContainer: React.FC<{
+interface SquareContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
   fillBlack?: boolean;
   gridNumber?: number | null;
-}> = ({ children, fillBlack = false, gridNumber = null }) => (
+}
+
+export const SquareContainer: React.FC<SquareContainerProps> = ({
+  children,
+  fillBlack = false,
+  gridNumber = null,
+  ...rest
+}) => (
   <div
+    {...rest}
     style={{
-      margin: "-1px",
       position: "relative",
-      padding: ".75vw",
-      width: "20px",
-      height: "20px",
-      border: "2px solid black",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      width: "6vw",
+      height: "6vw",
+      maxWidth: "40px",
+      maxHeight: "40px",
+      border: "1px solid black",
+      marginRight: "-1px",
+      marginBottom: "-1px",
       textAlign: "center",
       backgroundColor: fillBlack ? "#000000" : undefined,
     }}
@@ -201,30 +257,47 @@ export const SquareContainer: React.FC<{
 export const SquareProvider: React.FC<{
   square: Square;
   guessLetter: (guessData: LetterGuess) => void;
-}> = ({ square, guessLetter }) => {
+  handleSquareClick: (square: Square) => void;
+}> = ({ square, guessLetter, handleSquareClick }) => {
   switch (square.squareType) {
     case SquareType.BLANK:
-      return <BlankSquare square={square} guessLetter={guessLetter} />;
+      return (
+        <BlankSquare
+          square={square}
+          guessLetter={guessLetter}
+          handleSquareClick={handleSquareClick}
+        />
+      );
     case SquareType.BLACK:
       return <BlackSquare />;
     case SquareType.SOLVED:
       return <SolvedSquare square={square} />;
     case SquareType.CIRCLE_BLANK:
-      return <BlankSquare square={square} guessLetter={guessLetter} />;
+      return (
+        <BlankSquare
+          square={square}
+          guessLetter={guessLetter}
+          handleSquareClick={handleSquareClick}
+        />
+      );
     case SquareType.CIRCLE_BLACK:
-      return <BlankSquare square={square} guessLetter={guessLetter} />;
+      return <BlackSquare />;
     case SquareType.CIRCLE_SOLVED:
-      return <BlankSquare square={square} guessLetter={guessLetter} />;
+      return <SolvedSquare square={square} />;
   }
 };
 
 export const BlankSquare: React.FC<{
   square: Square;
   guessLetter: (guessData: LetterGuess) => void;
-}> = ({ square, guessLetter }) => {
+  handleSquareClick: (square: Square) => void;
+}> = ({ square, guessLetter, handleSquareClick }) => {
   const [currentLetter, setCurrentLetter] = useState("");
   return (
-    <SquareContainer gridNumber={square.gridnumber}>
+    <SquareContainer
+      onClick={() => handleSquareClick(square)}
+      gridNumber={square.gridnumber}
+    >
       <input
         value={currentLetter}
         id={`square-${square.id}`}
@@ -239,8 +312,8 @@ export const BlankSquare: React.FC<{
         }}
         style={{
           border: "none",
-          height: "25px",
-          width: "25px",
+          height: "80%",
+          width: "80%",
           textAlign: "center",
         }}
         type="text"
@@ -252,7 +325,9 @@ export const BlankSquare: React.FC<{
 export const SolvedSquare: React.FC<{ square: Square }> = ({ square }) => {
   return (
     <SquareContainer gridNumber={square.gridnumber}>
-      <div>{square.letter}</div>
+      <div style={{ paddingTop: "10%", fontWeight: "bolder" }}>
+        {square.letter}
+      </div>
     </SquareContainer>
   );
 };

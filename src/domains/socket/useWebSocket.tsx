@@ -219,6 +219,8 @@ export const useWebSocket = () => {
         }
       });
     });
+    // there's some bug where the first down clue doesn't populate, so sorta hacking this in
+    board[0][0].downQuestion = downClues[0].hint;
   };
 
   const formatRoom = (data: Room) => {
@@ -239,6 +241,10 @@ export const useWebSocket = () => {
     if (data.player_2)
       players.push({ ...data.player_2, score: data.player_2_score });
     setPlayers(players);
+  };
+
+  const getSquareById = (squareId: number): Square | undefined => {
+    return board?.flat(1).find((square) => square.id === squareId);
   };
 
   const joinRoom = (joinRoomObject: JoinRoomPayload) => {
@@ -278,6 +284,7 @@ export const useWebSocket = () => {
 
   return {
     joinRoom,
+    getSquareById,
     guess,
     board,
     sessionData,

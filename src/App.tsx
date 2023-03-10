@@ -17,7 +17,7 @@ export enum PageState {
 
 function App() {
   const [pageState, setPageState] = useState(PageState.LANDING);
-  const { guess, players, board, clues, sessionData, joinRoom } =
+  const { guess, players, board, clues, sessionData, joinRoom, getSquareById } =
     useWebSocket();
   const user = useCurrentUser();
 
@@ -48,6 +48,7 @@ function App() {
       return (
         <GamePage
           guess={guess}
+          getSquareById={getSquareById}
           players={players}
           board={board}
           clues={clues}
