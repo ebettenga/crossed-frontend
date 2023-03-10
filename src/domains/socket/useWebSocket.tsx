@@ -206,7 +206,12 @@ export const useWebSocket = () => {
     board.forEach((row, rowIndex) => {
       row.forEach((_, colIndex) => {
         const square = board[colIndex][rowIndex];
-        if (square.squareType === SquareType.BLACK) {
+        if (colIndex === 0) {
+          currentClue = square.gridnumber ?? -1;
+          square.downQuestion = downClues.find(
+            (clue) => clue.number == currentClue
+          )?.hint;
+        } else if (square.squareType === SquareType.BLACK) {
           try {
             currentClue = board[colIndex + 1][rowIndex].gridnumber!;
           } catch (error) {
