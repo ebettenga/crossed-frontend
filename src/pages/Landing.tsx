@@ -49,7 +49,7 @@ const HowToPlayText = () => (
       <li>press a square to see the clue</li>
       <li>press the square again to change the clue direction</li>
       <br />
-      <li>correct guesses will earn points</li>
+      <li>correct guesses will earn</li>
       <li>incorrect guesses will lose points</li>
     </ul>
   </div>

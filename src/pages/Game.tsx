@@ -1,4 +1,5 @@
 import { ReactNode, useState } from "react";
+import invariant from "tiny-invariant";
 import { Spacer } from "../domains/components/spacing";
 import {
   Guess,
@@ -8,6 +9,7 @@ import {
   Square,
   SquareType,
 } from "../domains/socket/use-web-socket";
+import { useCurrentUser } from "../domains/user/use-current-user";
 
 interface LetterGuess {
   x: number;
@@ -34,6 +36,7 @@ export const GamePage = ({
     Orientation.ACROSS
   );
   const [selectedSquare, setSelectedSquare] = useState<Square>(board[0][0]);
+  const {user} = useCurrentUser();
 
   const handleSquareClick = (square: Square) => {
     if (square !== selectedSquare) {
@@ -48,11 +51,12 @@ export const GamePage = ({
   };
 
   const guessLetter = (guessData: LetterGuess) => {
+    invariant(user, "user should exsist on Game Page")
     guess({
       x: guessData.x,
       y: guessData.y,
       room_id: sessionData.roomId,
-      user_id: 1,
+      user_id: user?.id,
       guess: guessData.input,
     });
     navigateCursor(orientationDirection, guessData.squareId);
