@@ -36,7 +36,7 @@ export const GamePage = ({
     Orientation.ACROSS
   );
   const [selectedSquare, setSelectedSquare] = useState<Square>(board[0][0]);
-  const {user} = useCurrentUser();
+  const { user } = useCurrentUser();
 
   const handleSquareClick = (square: Square) => {
     if (square !== selectedSquare) {
@@ -51,7 +51,7 @@ export const GamePage = ({
   };
 
   const guessLetter = (guessData: LetterGuess) => {
-    invariant(user, "user should exsist on Game Page")
+    invariant(user, "user should exsist on Game Page");
     guess({
       x: guessData.x,
       y: guessData.y,
