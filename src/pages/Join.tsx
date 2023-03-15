@@ -2,9 +2,9 @@ import { Dispatch, ReactNode, SetStateAction, useEffect } from "react";
 import { PageState } from "../App";
 import { useCurrentUser } from "../domains/user/use-current-user";
 import { JoinRoomPayload, SessionData } from "../domains/socket/use-web-socket";
-import { Button } from "../domains/components/button";
 import invariant from "tiny-invariant";
 import { PageContainer, Spacer } from "../domains/components/spacing";
+import { Button } from "antd";
 
 export const JoinRoom = ({
   sessionData,
