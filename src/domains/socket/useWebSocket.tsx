@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
+import { BASE_URL } from "../user/user";
 
 interface CrossWord {
   author: string;
@@ -266,7 +267,7 @@ export const useWebSocket = () => {
 
   useEffect(() => {
     if (!socketInstance) {
-      const socket = io("localhost:5000/", {
+      const socket = io(BASE_URL, {
         transports: ["websocket"],
       });
 

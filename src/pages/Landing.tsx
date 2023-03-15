@@ -46,7 +46,4 @@ const Start: React.FC<{
   );
 };
 
-
-
 const HomeTitle = () => <h1>Crossed</h1>;
-

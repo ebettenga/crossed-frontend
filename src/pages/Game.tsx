@@ -107,6 +107,8 @@ export const GamePage = ({
           ></Score>
         );
       })}
+      <Spacer margin={"1rem"} />
+      <ClueView square={selectedSquare} direction={orientationDirection} />
       <Board>
         {board.map((squares) => (
           <Row
@@ -326,7 +328,7 @@ export const SolvedSquare: React.FC<{ square: Square }> = ({ square }) => {
   return (
     <SquareContainer gridNumber={square.gridnumber}>
       <div style={{ paddingTop: "10%", fontWeight: "bolder" }}>
-        {square.letter}
+        {square.letter?.toUpperCase()}
       </div>
     </SquareContainer>
   );
