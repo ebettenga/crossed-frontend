@@ -1,7 +1,8 @@
 import { useAuth0 } from "@auth0/auth0-react";
-import React, { Dispatch, SetStateAction, useState } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 
-export const BASE_URL = import.meta.env.VITE_APP_BASE_URL ?? "http://localhost:5001";
+export const BASE_URL =
+  import.meta.env.VITE_APP_BASE_URL ?? "http://localhost:5001";
 
 export interface User {
   id: number;
@@ -28,7 +29,8 @@ export const useCurrentUser = () => {
   const {
     user: OauthUser,
     getAccessTokenSilently,
-    loginWithPopup,
+    loginWithRedirect,
+    isAuthenticated
   } = useAuth0();
 
   const updateUser = async () => {
@@ -45,22 +47,20 @@ export const useCurrentUser = () => {
         .then((data) => data.json() as Promise<User>)
         .then((userData) => {
           setUser(userData);
-        }).finally(() => {
-          setLoading(false);
         })
+        .finally(() => {
+          setLoading(false);
+        });
     });
   };
 
   const login = () => {
-    loginWithPopup({
-      authorizationParams: {
-        audience: import.meta.env.VITE_APP_AUTH0_AUDIENCE,
-        redirect_uri: import.meta.env.VITE_APP_AUTH0_CALLBACK_URL,
-      },
-    }).then(() => {
-      updateUser();
-    });
+    loginWithRedirect()
   };
+
+  useEffect(() => {
+    isAuthenticated && !user && updateUser();
+  }, [isAuthenticated])
 
   return { user, login, isLoading };
 };
