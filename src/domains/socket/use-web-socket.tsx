@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
-import { BASE_URL } from "../user/user";
+import { BASE_URL } from "../user/use-current-user";
 
 interface CrossWord {
   author: string;

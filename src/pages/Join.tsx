@@ -1,7 +1,7 @@
 import { Dispatch, ReactNode, SetStateAction, useEffect } from "react";
 import { PageState } from "../App";
-import { useCurrentUser } from "../domains/user/context";
-import { JoinRoomPayload, SessionData } from "../domains/socket/useWebSocket";
+import { useCurrentUser } from "../domains/user/use-current-user";
+import { JoinRoomPayload, SessionData } from "../domains/socket/use-web-socket";
 import { Button } from "../domains/components/button";
 import invariant from "tiny-invariant";
 import { PageContainer, Spacer } from "../domains/components/spacing";
@@ -67,7 +67,7 @@ const SelectDifficultyButton: React.FC<{
   difficulty: "easy" | "medium" | "hard";
   title: "Easy" | "Medium" | "Hard";
 }> = ({ joinRoom, difficulty, title }) => {
-  const user = useCurrentUser();
+  const {user} = useCurrentUser();
   invariant(user, "user not found during difficulty selection");
   return (
     <>

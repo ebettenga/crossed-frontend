@@ -7,7 +7,7 @@ import {
   SessionData,
   Square,
   SquareType,
-} from "../domains/socket/useWebSocket";
+} from "../domains/socket/use-web-socket";
 
 interface LetterGuess {
   x: number;

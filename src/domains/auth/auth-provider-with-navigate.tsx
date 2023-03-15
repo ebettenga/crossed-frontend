@@ -1,4 +1,4 @@
-import { Auth0Provider, AppState } from "@auth0/auth0-react";
+import { Auth0Provider } from "@auth0/auth0-react";
 import React, { PropsWithChildren } from "react";
 
 interface Auth0ProviderWithNavigateProps {
@@ -12,7 +12,6 @@ export const Auth0ProviderWithNavigate = ({
   const clientId = import.meta.env.VITE_APP_AUTH0_CLIENT_ID;
   const redirectUri = import.meta.env.VITE_APP_AUTH0_CALLBACK_URL;
   const audience = import.meta.env.VITE_APP_AUTH0_AUDIENCE;
-
   return (
     <Auth0Provider
       domain={domain}
