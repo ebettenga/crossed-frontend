@@ -32,8 +32,25 @@ const Start: React.FC<{
       <HomeTitle />
       <Spacer margin={"5rem"} />
       <Button onClick={() => setPageState(PageState.JOINING)}>Start</Button>
+      <Spacer margin={"2rem"} />
+      <HowToPlayText />
     </PageContainer>
   );
 };
 
 const HomeTitle = () => <h1>Crossed</h1>;
+
+const HowToPlayText = () => (
+  <div
+    style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+  >
+    <h4>How To Play</h4>
+    <ul>
+      <li>press a square to see the clue</li>
+      <li>press the square again to change the clue direction</li>
+      <br />
+      <li>correct guesses will earn points</li>
+      <li>incorrect guesses will lose points</li>
+    </ul>
+  </div>
+);

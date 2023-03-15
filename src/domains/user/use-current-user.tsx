@@ -30,7 +30,7 @@ export const useCurrentUser = () => {
     user: OauthUser,
     getAccessTokenSilently,
     loginWithRedirect,
-    isAuthenticated
+    isAuthenticated,
   } = useAuth0();
 
   const updateUser = async () => {
@@ -55,12 +55,12 @@ export const useCurrentUser = () => {
   };
 
   const login = () => {
-    loginWithRedirect()
+    loginWithRedirect();
   };
 
   useEffect(() => {
     isAuthenticated && !user && updateUser();
-  }, [isAuthenticated])
+  }, [isAuthenticated]);
 
   return { user, login, isLoading };
 };
