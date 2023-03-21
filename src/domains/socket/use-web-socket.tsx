@@ -286,6 +286,7 @@ export const useWebSocket = () => {
           .then((data) => data.json() as Promise<Room>)
           .then((roomData) => {
             formatRoom(roomData);
+            socketInstance?.emit("load_room", roomId)
             setPageState(PageState.PLAYING);
           });
       });
