@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import invariant from "tiny-invariant";
 import "./App.css";
 import { useCurrentUser } from "./domains/user/use-current-user";
@@ -7,6 +7,7 @@ import { GamePage } from "./pages/Game";
 import { JoinRoom } from "./pages/Join";
 import { LandingPage } from "./pages/Landing";
 import { WaitingPage } from "./pages/Waiting";
+import { StorageKeys, useSession } from "./hooks/use-session";
 
 export enum PageState {
   LANDING,
@@ -16,12 +17,24 @@ export enum PageState {
 }
 
 function App() {
+  const { get: getRoom } = useSession(StorageKeys.ROOM_ID);
+  const roomId = getRoom();
   const [pageState, setPageState] = useState(PageState.LANDING);
-  const { guess, players, board, clues, sessionData, joinRoom, getSquareById } =
-    useWebSocket();
-  const {user} = useCurrentUser();
+  const {
+    guess,
+    players,
+    board,
+    clues,
+    sessionData,
+    loadRoom,
+    joinRoom,
+    getSquareById,
+  } = useWebSocket();
+  const { user } = useCurrentUser();
 
   if (!user) return <LandingPage setPageState={setPageState} />;
+
+  roomId && loadRoom(parseInt(roomId), setPageState);
 
   switch (pageState) {
     case PageState.LANDING:

@@ -2,7 +2,9 @@ import { Button, Card, Divider, Layout, List, Space, Typography } from "antd";
 import { Dispatch, ReactNode, SetStateAction } from "react";
 import { PageState } from "../App";
 import { PageContainer, Spacer } from "../domains/components/spacing";
+import { JoinRoomPayload } from "../domains/socket/use-web-socket";
 import { useCurrentUser } from "../domains/user/use-current-user";
+import { useSession } from "../hooks/use-session";
 
 const { Title } = Typography;
 
@@ -65,6 +67,7 @@ const gridStyle: React.CSSProperties = {
 const Start: React.FC<{
   setPageState: Dispatch<SetStateAction<PageState>>;
 }> = ({ setPageState }) => {
+
   const rules = [
     "press a square to see the clue",
     "press the square again to change the clue direction",

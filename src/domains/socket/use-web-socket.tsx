@@ -1,5 +1,8 @@
+import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
+import { PageState } from "../../App";
+import { StorageKeys, useSession } from "../../hooks/use-session";
 import { BASE_URL } from "../user/use-current-user";
 
 interface CrossWord {
@@ -91,6 +94,8 @@ export interface Guess {
 }
 
 export const useWebSocket = () => {
+  const { getAccessTokenSilently } = useAuth0();
+  const { set, clear: clearRoomId } = useSession(StorageKeys.ROOM_ID);
   const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
   const [board, setBoard] = useState<Square[][] | null>(null);
   const [downClues, setDownClues] = useState<string[]>([]);
@@ -265,6 +270,28 @@ export const useWebSocket = () => {
     }
   };
 
+  const loadRoom = (
+    roomId: number,
+    setPageState: React.Dispatch<React.SetStateAction<PageState>>
+  ) => {
+    if (!board) {
+      getAccessTokenSilently().then((token) => {
+        fetch(`${BASE_URL}/api/v1/room/${roomId}`, {
+          method: "GET",
+          headers: [
+            ["Authorization", `Bearer ${token}`],
+            ["Content-Type", "application/json"],
+          ],
+        })
+          .then((data) => data.json() as Promise<Room>)
+          .then((roomData) => {
+            formatRoom(roomData);
+            setPageState(PageState.PLAYING);
+          });
+      });
+    }
+  };
+
   useEffect(() => {
     if (!socketInstance) {
       const socket = io(BASE_URL, {
@@ -276,10 +303,12 @@ export const useWebSocket = () => {
     if (socketInstance) {
       socketInstance.on("room_joined", (data: Room) => {
         formatRoom(data);
+        set(data.id.toString());
       });
 
       socketInstance.on("message", (data: RoomResponse) => {
         formatRoom(data.message);
+        !data.message.found_letters.includes("*") && clearRoomId();
       });
     }
 
@@ -292,6 +321,7 @@ export const useWebSocket = () => {
     joinRoom,
     getSquareById,
     guess,
+    loadRoom,
     board,
     sessionData,
     players,
