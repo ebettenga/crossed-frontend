@@ -10,6 +10,8 @@ import {
   SquareType,
 } from "../domains/socket/use-web-socket";
 import { useCurrentUser } from "../domains/user/use-current-user";
+import { LettersKeyboard } from "../components/Keyboard/Keyboard";
+import { useMediaQuery } from "../hooks/use-media-query";
 
 interface LetterGuess {
   x: number;
@@ -32,6 +34,8 @@ export const GamePage = ({
   sessionData: SessionData;
   clues: { downClues: string[]; acrossClues: string[] };
 }) => {
+  const sm = useMediaQuery("sm");
+  const md = useMediaQuery("md");
   const [orientationDirection, setOrientationDirection] = useState<Orientation>(
     Orientation.ACROSS
   );
@@ -112,7 +116,6 @@ export const GamePage = ({
         );
       })}
       <Spacer margin={"1rem"} />
-      <ClueView square={selectedSquare} direction={orientationDirection} />
       <Board>
         {board.map((squares) => (
           <Row
@@ -120,18 +123,37 @@ export const GamePage = ({
             squares={squares}
             guessLetter={guessLetter}
             handleSquareClick={handleSquareClick}
+            selectedSquare={selectedSquare}
           />
         ))}
       </Board>
       <Spacer margin={".3rem"} />
       <ClueView square={selectedSquare} direction={orientationDirection} />
+      <Spacer margin={"1rem"} />
+      {!(sm || md) && (
+        <LettersKeyboard
+          onInput={(letter) =>
+            guessLetter({
+              input: letter,
+              squareId: selectedSquare.id,
+              x: selectedSquare.x,
+              y: selectedSquare.y,
+            })
+          }
+        />
+      )}
     </GameContainer>
   );
 };
 
 const ClueViewContainer: React.FC<{ children: ReactNode }> = ({ children }) => (
   <div
-    style={{ display: "flex", alignItems: "center", flexDirection: "column" }}
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "column",
+    }}
   >
     {children}
   </div>
@@ -192,7 +214,8 @@ export const Row: React.FC<{
   squares: Square[];
   guessLetter: (guessData: LetterGuess) => void;
   handleSquareClick: (square: Square) => void;
-}> = ({ squares, guessLetter, handleSquareClick }) => (
+  selectedSquare: Square;
+}> = ({ squares, guessLetter, handleSquareClick, selectedSquare }) => (
   <div style={{ display: "flex" }}>
     {squares.map((square) => (
       <SquareProvider
@@ -200,6 +223,7 @@ export const Row: React.FC<{
         square={square}
         guessLetter={guessLetter}
         handleSquareClick={handleSquareClick}
+        selectedSquare={selectedSquare}
       />
     ))}
   </div>
@@ -227,12 +251,14 @@ interface SquareContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
   fillBlack?: boolean;
   gridNumber?: number | null;
+  isSelected: boolean;
 }
 
 export const SquareContainer: React.FC<SquareContainerProps> = ({
   children,
   fillBlack = false,
   gridNumber = null,
+  isSelected,
   ...rest
 }) => (
   <div
@@ -250,7 +276,11 @@ export const SquareContainer: React.FC<SquareContainerProps> = ({
       marginRight: "-1px",
       marginBottom: "-1px",
       textAlign: "center",
-      backgroundColor: fillBlack ? "#000000" : undefined,
+      backgroundColor: fillBlack
+        ? "#000000"
+        : isSelected
+        ? "#ADD8E6"
+        : "#ffffff",
     }}
   >
     <>
@@ -264,7 +294,8 @@ export const SquareProvider: React.FC<{
   square: Square;
   guessLetter: (guessData: LetterGuess) => void;
   handleSquareClick: (square: Square) => void;
-}> = ({ square, guessLetter, handleSquareClick }) => {
+  selectedSquare: Square;
+}> = ({ square, guessLetter, handleSquareClick, selectedSquare }) => {
   switch (square.squareType) {
     case SquareType.BLANK:
       return (
@@ -272,6 +303,7 @@ export const SquareProvider: React.FC<{
           square={square}
           guessLetter={guessLetter}
           handleSquareClick={handleSquareClick}
+          selectedSquare={selectedSquare}
         />
       );
     case SquareType.BLACK:
@@ -284,6 +316,7 @@ export const SquareProvider: React.FC<{
           square={square}
           guessLetter={guessLetter}
           handleSquareClick={handleSquareClick}
+          selectedSquare={selectedSquare}
         />
       );
     case SquareType.CIRCLE_BLACK:
@@ -297,14 +330,19 @@ export const BlankSquare: React.FC<{
   square: Square;
   guessLetter: (guessData: LetterGuess) => void;
   handleSquareClick: (square: Square) => void;
-}> = ({ square, guessLetter, handleSquareClick }) => {
+  selectedSquare: Square;
+}> = ({ square, guessLetter, handleSquareClick, selectedSquare }) => {
   const [currentLetter, setCurrentLetter] = useState("");
+  const sm = useMediaQuery("sm");
+  const md = useMediaQuery("md");
   return (
     <SquareContainer
       onClick={() => handleSquareClick(square)}
       gridNumber={square.gridnumber}
+      isSelected={square.id === selectedSquare.id}
     >
       <input
+        readOnly={!(sm || md)}
         value={currentLetter}
         id={`square-${square.id}`}
         onChange={(e) => {
@@ -321,6 +359,7 @@ export const BlankSquare: React.FC<{
           height: "80%",
           width: "80%",
           textAlign: "center",
+          backgroundColor: square.id === selectedSquare.id ? "#ADD8E6" : "#ffffff"
         }}
         type="text"
       />

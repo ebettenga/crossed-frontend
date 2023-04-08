@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import invariant from "tiny-invariant";
 import "./App.css";
 import { useCurrentUser } from "./domains/user/use-current-user";
-import { useWebSocket } from "./domains/socket/use-web-socket";
+import { useGame } from "./domains/socket/use-web-socket";
 import { GamePage } from "./pages/Game";
 import { JoinRoom } from "./pages/Join";
 import { LandingPage } from "./pages/Landing";
@@ -29,7 +29,7 @@ function App() {
     loadRoom,
     joinRoom,
     getSquareById,
-  } = useWebSocket();
+  } = useGame();
   const { user } = useCurrentUser();
 
   if (!user) return <LandingPage setPageState={setPageState} />;

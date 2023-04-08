@@ -93,7 +93,7 @@ export interface Guess {
   user_id: number;
 }
 
-export const useWebSocket = () => {
+export const useGame = () => {
   const { getAccessTokenSilently } = useAuth0();
   const { set, clear: clearRoomId } = useSession(StorageKeys.ROOM_ID);
   const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
