@@ -12,6 +12,8 @@ import {
 import { useCurrentUser } from "../domains/user/use-current-user";
 import { LettersKeyboard } from "../components/Keyboard/Keyboard";
 import { useMediaQuery } from "../hooks/use-media-query";
+import { Card, Layout } from "antd";
+import { Content } from "antd/es/layout/layout";
 
 interface LetterGuess {
   x: number;
@@ -106,15 +108,24 @@ export const GamePage = ({
 
   return (
     <GameContainer>
-      {players.map((player) => {
-        return (
-          <Score
-            key={`${player.first_name}${player.id}`}
-            title={player.first_name}
-            score={player.score}
-          ></Score>
-        );
-      })}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          gap: "1rem",
+          marginTop: "1rem",
+        }}
+      >
+        {players.map((player) => {
+          return (
+            <Score
+              key={`${player.first_name}${player.id}`}
+              title={player.first_name}
+              score={player.score}
+            ></Score>
+          );
+        })}
+      </div>
       <Spacer margin={"1rem"} />
       <Board>
         {board.map((squares) => (
@@ -183,28 +194,41 @@ const Score: React.FC<{ title: string; score: number }> = ({
   score,
 }) => {
   return (
-    <div>
-      <div>
-        {title}: {score}
-      </div>
-    </div>
+    <Card
+      title={title}
+      style={{ textAlign: "center", height: "7rem", width: "30vw" }}
+    >
+      <p style={{marginTop: '-5px'}}>{score}</p>
+    </Card>
   );
 };
 
-const GameContainer: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => (
-  <div
-    style={{
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      alignItems: "center",
-    }}
-  >
-    {children}
-  </div>
-);
+const GameContainer: React.FC<{ children: ReactNode }> = ({ children }) => {
+  return (
+    <Layout
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Content
+        style={{
+          maxWidth: "500px",
+          display: "flex",
+          flex: "1 1 auto",
+          justifyContent: "start",
+          alignItems: "center",
+          flexDirection: "column",
+        }}
+      >
+        {children}
+      </Content>
+    </Layout>
+  );
+};
 
 export const Board: React.FC<{ children: React.ReactNode }> = ({
   children,

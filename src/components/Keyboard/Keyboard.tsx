@@ -20,7 +20,7 @@ export const LettersKeyboard: React.FC<{
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        flexDirection: 'column'
+        flexDirection: "column",
       }}
     >
       {keyboard.map((row: string[], index) => {
@@ -51,7 +51,12 @@ const KeyboardKey: React.FC<KeyboardButtonProps> = ({
   ...rest
 }) => {
   return (
-    <button {...rest} onClick={() => onKeyPress(letter)} className="key">
+    <button
+      {...rest}
+      style={{ width: "calc(100vw / 12)", height: "calc(100vw / 11)" }}
+      onClick={() => onKeyPress(letter)}
+      className="key"
+    >
       <div style={{ fontSize: "18px" }}>{letter}</div>
     </button>
   );
