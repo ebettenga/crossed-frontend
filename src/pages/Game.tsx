@@ -251,14 +251,14 @@ interface SquareContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
   fillBlack?: boolean;
   gridNumber?: number | null;
-  isSelected: boolean;
+  isSelected?: boolean;
 }
 
 export const SquareContainer: React.FC<SquareContainerProps> = ({
   children,
   fillBlack = false,
   gridNumber = null,
-  isSelected,
+  isSelected = null,
   ...rest
 }) => (
   <div
@@ -280,7 +280,7 @@ export const SquareContainer: React.FC<SquareContainerProps> = ({
         ? "#000000"
         : isSelected
         ? "#ADD8E6"
-        : "#ffffff",
+        : "#ffffff" ?? "#ffffff",
     }}
   >
     <>
@@ -359,7 +359,8 @@ export const BlankSquare: React.FC<{
           height: "80%",
           width: "80%",
           textAlign: "center",
-          backgroundColor: square.id === selectedSquare.id ? "#ADD8E6" : "#ffffff"
+          backgroundColor:
+            square.id === selectedSquare.id ? "#ADD8E6" : "#ffffff",
         }}
         type="text"
       />

@@ -5,6 +5,7 @@ import { JoinRoomPayload, SessionData } from "../domains/socket/use-web-socket";
 import invariant from "tiny-invariant";
 import { Button, Layout, Space } from "antd";
 import Title from "antd/es/typography/Title";
+import { Spacer } from "../domains/components/spacing";
 
 const { Content } = Layout;
 
@@ -14,20 +15,19 @@ const JoinPageContainer: React.FC<{ children: ReactNode }> = ({ children }) => {
       style={{
         display: "flex",
         flexDirection: "column",
+        height: "100vh",
         justifyContent: "center",
         alignItems: "center",
       }}
     >
       <JoinRoomTitle />
-      <div style={{ paddingTop: "30px" }}></div>
+      <div style={{ paddingTop: "10rem" }}></div>
       <Content
         style={{
           maxWidth: "500px",
-          minHeight: "100vh",
           display: "flex",
+          flex: "1 1 auto",
           flexDirection: "column",
-          justifyContent: "space-between",
-          alignItems: "space-between",
         }}
       >
         {children}
@@ -78,6 +78,7 @@ export const JoinRoom = ({
           return (
             <>
               <SelectDifficultyButton
+                key={title}
                 difficulty={difficulty}
                 joinRoom={joinRoom}
                 title={title}
@@ -90,7 +91,9 @@ export const JoinRoom = ({
   );
 };
 
-const JoinRoomTitle = () => <Title>Select Difficulty</Title>;
+const JoinRoomTitle = () => (
+  <Title style={{ marginTop: "3rem" }}>Select Difficulty</Title>
+);
 
 const SelectDifficultyButton: React.FC<{
   joinRoom: (joinRoomPayload: JoinRoomPayload) => void;

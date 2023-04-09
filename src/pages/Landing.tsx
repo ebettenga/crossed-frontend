@@ -1,10 +1,7 @@
-import { Button, Card, Divider, Layout, List, Space, Typography } from "antd";
+import { Button, Card, Layout, List, Typography } from "antd";
 import { Dispatch, ReactNode, SetStateAction } from "react";
 import { PageState } from "../App";
-import { PageContainer, Spacer } from "../domains/components/spacing";
-import { JoinRoomPayload } from "../domains/socket/use-web-socket";
 import { useCurrentUser } from "../domains/user/use-current-user";
-import { useSession } from "../hooks/use-session";
 
 const { Title } = Typography;
 
@@ -19,6 +16,7 @@ const LandingPageContainer: React.FC<{ children: ReactNode }> = ({
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
+        height: '100vh',
         alignItems: "center",
       }}
     >
@@ -26,8 +24,8 @@ const LandingPageContainer: React.FC<{ children: ReactNode }> = ({
       <Content
         style={{
           maxWidth: "500px",
-          minHeight: "100vh",
           display: "flex",
+          flex: '1 1 auto',
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
@@ -81,6 +79,7 @@ const Start: React.FC<{
         style={{
           minWidth: 300,
           maxWidth: 700,
+          margin: '10px',
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
@@ -106,7 +105,7 @@ const Start: React.FC<{
   );
 };
 
-const HomeTitle = () => <Title>Crossed</Title>;
+const HomeTitle = () => <Title style={{marginTop: '3rem'}}>Crossed</Title>;
 
 const RulesList: React.FC<{ rules: string[] }> = ({ rules }) => (
   <List
