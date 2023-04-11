@@ -117,9 +117,6 @@ export const useGame = () => {
 
   const createSquares = (data: Room) => {
     return data.found_letters.map((letterCharacter: string, index) => {
-      const isCircled = data.crossword.circles
-        ? data.crossword.circles[index] === 1
-        : false;
       const x = Math.floor(index / data.crossword.row_size);
       return {
         id: index,
@@ -127,7 +124,7 @@ export const useGame = () => {
         y: index - x * data.crossword.row_size,
         squareType: getSquareType(
           /[a-zA-z]/.test(letterCharacter),
-          isCircled,
+          data.crossword.circles ? data.crossword.circles[index] === 1 : false,
           letterCharacter === "."
         ),
         gridnumber:
