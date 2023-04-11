@@ -198,7 +198,7 @@ const Score: React.FC<{ title: string; score: number }> = ({
       title={title}
       style={{ textAlign: "center", height: "7rem", width: "30vw" }}
     >
-      <p style={{marginTop: '-5px'}}>{score}</p>
+      <p style={{ marginTop: "-5px" }}>{score}</p>
     </Card>
   );
 };
@@ -336,15 +336,13 @@ export const SquareProvider: React.FC<{
       return <SolvedSquare square={square} />;
     case SquareType.CIRCLE_BLANK:
       return (
-        <BlankSquare
+        <BlankCircleSquare
           square={square}
           guessLetter={guessLetter}
           handleSquareClick={handleSquareClick}
           selectedSquare={selectedSquare}
         />
       );
-    case SquareType.CIRCLE_BLACK:
-      return <BlackSquare />;
     case SquareType.CIRCLE_SOLVED:
       return <SolvedSquare square={square} />;
   }
@@ -397,6 +395,59 @@ export const SolvedSquare: React.FC<{ square: Square }> = ({ square }) => {
     <SquareContainer gridNumber={square.gridnumber}>
       <div style={{ paddingTop: "10%", fontWeight: "bolder" }}>
         {square.letter?.toUpperCase()}
+      </div>
+    </SquareContainer>
+  );
+};
+
+export const BlankCircleSquare: React.FC<{
+  square: Square;
+  guessLetter: (guessData: LetterGuess) => void;
+  handleSquareClick: (square: Square) => void;
+  selectedSquare: Square;
+}> = ({ square, guessLetter, handleSquareClick, selectedSquare }) => {
+  const [currentLetter, setCurrentLetter] = useState("");
+  const sm = useMediaQuery("sm");
+  const md = useMediaQuery("md");
+  return (
+    <SquareContainer
+      onClick={() => handleSquareClick(square)}
+      gridNumber={square.gridnumber}
+      isSelected={square.id === selectedSquare.id}
+    >
+      <div
+        style={{
+          display: "float",
+          height: "100%",
+          border: "1px solid black",
+          borderRadius: "50%",
+        }}
+      >
+        <input
+          readOnly={!(sm || md)}
+          value={currentLetter}
+          id={`square-${square.id}`}
+          onChange={(e) => {
+            guessLetter({
+              x: square.x,
+              y: square.y,
+              input: e.target.value,
+              squareId: square.id,
+            });
+            setCurrentLetter("");
+          }}
+          style={{
+            display: "float",
+            background: "transparent",
+            border: "none",
+            outline: "none",
+            height: "80%",
+            width: "80%",
+            marginTop: ".25rem",
+            textAlign: "center",
+          }}
+          type="text"
+        />
       </div>
     </SquareContainer>
   );

@@ -57,7 +57,6 @@ export enum SquareType {
   BLACK,
   CIRCLE_BLANK,
   CIRCLE_SOLVED,
-  CIRCLE_BLACK,
 }
 
 export interface Square {
@@ -106,8 +105,7 @@ export const useGame = () => {
   // this is pretty gross to read
   const getSquareType = (
     letter_character: string,
-    isCircled: boolean,
-    isCircledShaded: boolean
+    isCircled: boolean
   ): SquareType => {
     const hasLetter = /[a-zA-z]/.test(letter_character);
     if (letter_character === ".") {
@@ -117,9 +115,6 @@ export const useGame = () => {
       return SquareType.SOLVED;
     }
     if (isCircled) {
-      if (isCircledShaded) {
-        return SquareType.CIRCLE_BLACK;
-      }
       if (hasLetter) {
         return SquareType.CIRCLE_SOLVED;
       }
@@ -130,16 +125,13 @@ export const useGame = () => {
 
   const createSquares = (data: Room) => {
     return data.found_letters.map((item: string, index) => {
-      const isCircled = data.crossword.circles
-        ? data.crossword.circles[index] === 1
-        : false;
-      const isCircledShaded = data.crossword.shadecircles;
+      const isCircled = data.crossword.circles[index] === 1;
       const x = Math.floor(index / data.crossword.row_size);
       return {
         id: index,
         x,
         y: index - x * data.crossword.row_size,
-        squareType: getSquareType(item, isCircled, isCircledShaded),
+        squareType: getSquareType(item, isCircled),
         gridnumber:
           data.crossword.gridnums[index] !== 0
             ? data.crossword.gridnums[index]
@@ -236,6 +228,7 @@ export const useGame = () => {
 
   const formatRoom = (data: Room) => {
     const squares = createSquares(data);
+
     const board = createBoard(squares, data.crossword.row_size);
     addCluesToSquares(board, data.crossword.clues);
     setAcrossClues(data.crossword.clues.across);
@@ -286,7 +279,7 @@ export const useGame = () => {
           .then((data) => data.json() as Promise<Room>)
           .then((roomData) => {
             formatRoom(roomData);
-            socketInstance?.emit("load_room", roomId)
+            socketInstance?.emit("load_room", roomId);
             setPageState(PageState.PLAYING);
           });
       });
