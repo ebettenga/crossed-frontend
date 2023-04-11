@@ -102,29 +102,21 @@ export const useGame = () => {
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
 
-  // this is pretty gross to read
   const getSquareType = (
-    letter_character: string,
-    isCircled: boolean
+    hasLetter: boolean,
+    isCircled: boolean,
+    black: boolean
   ): SquareType => {
-    const hasLetter = /[a-zA-z]/.test(letter_character);
-    if (letter_character === ".") {
-      return SquareType.BLACK;
-    }
+    if (black) return SquareType.BLACK;
     if (hasLetter) {
-      return SquareType.SOLVED;
+      return isCircled ? SquareType.CIRCLE_SOLVED : SquareType.SOLVED;
+    } else {
+      return isCircled ? SquareType.CIRCLE_BLANK : SquareType.BLANK;
     }
-    if (isCircled) {
-      if (hasLetter) {
-        return SquareType.CIRCLE_SOLVED;
-      }
-      return SquareType.CIRCLE_BLANK;
-    }
-    return SquareType.BLANK;
   };
 
   const createSquares = (data: Room) => {
-    return data.found_letters.map((item: string, index) => {
+    return data.found_letters.map((letterCharacter: string, index) => {
       const isCircled = data.crossword.circles
         ? data.crossword.circles[index] === 1
         : false;
@@ -133,12 +125,16 @@ export const useGame = () => {
         id: index,
         x,
         y: index - x * data.crossword.row_size,
-        squareType: getSquareType(item, isCircled),
+        squareType: getSquareType(
+          /[a-zA-z]/.test(letterCharacter),
+          isCircled,
+          letterCharacter === "."
+        ),
         gridnumber:
           data.crossword.gridnums[index] !== 0
             ? data.crossword.gridnums[index]
             : null,
-        letter: item !== "*" ? item : undefined,
+        letter: letterCharacter !== "*" ? letterCharacter : undefined,
         isHilighted: false,
       } as Square;
     });
