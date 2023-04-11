@@ -125,7 +125,9 @@ export const useGame = () => {
 
   const createSquares = (data: Room) => {
     return data.found_letters.map((item: string, index) => {
-      const isCircled = data.crossword.circles[index] === 1;
+      const isCircled = data.crossword.circles
+        ? data.crossword.circles[index] === 1
+        : false;
       const x = Math.floor(index / data.crossword.row_size);
       return {
         id: index,
