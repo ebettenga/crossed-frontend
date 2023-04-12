@@ -34,6 +34,11 @@ interface RoomResponse {
   message: Room;
 }
 
+interface Clue {
+  number: number;
+  hint: string;
+}
+
 export interface Room {
   created_at: string;
   crossword: CrossWord;
@@ -92,6 +97,11 @@ export interface Guess {
   user_id: number;
 }
 
+enum PopulationState {
+  READING,
+  WRITING,
+}
+
 export const useGame = () => {
   const { getAccessTokenSilently } = useAuth0();
   const { set, clear: clearRoomId } = useSession(StorageKeys.ROOM_ID);
@@ -148,77 +158,78 @@ export const useGame = () => {
     return arrayToMatrix(squares, row_len);
   };
 
-  const createClueArray = (
-    clues: string[]
-  ): { number: number; hint: string }[] => {
+  const createClueArray = (clues: string[]): Clue[] => {
     return clues.map((clue) => {
       const clueArray = clue.split(".");
       const clueNumber = parseInt(clueArray[0]);
-      const hint = clue;
-      return { number: clueNumber, hint };
+      return { number: clueNumber, hint: clue };
     });
   };
-
   const addCluesToSquares = (
     board: Square[][],
     { across, down }: { across: string[]; down: string[] }
   ) => {
-    populateAcrossClues(board, across);
-    populateDownClues(board, down);
+    populateAcrossClues(board, createClueArray(across));
+    populateDownClues(board, createClueArray(down));
   };
 
-  const shouldIncrementAcross = (
-    currentIndex: number,
-    square: Square,
-    previousSquare: Square | undefined
-  ): number => {
-    if (previousSquare?.squareType === SquareType.BLACK) return currentIndex;
-    if (previousSquare && square.x !== previousSquare?.x)
-      return currentIndex + 1;
-    if (square.squareType === SquareType.BLACK) return currentIndex + 1;
-    return currentIndex;
-  };
-
-  const populateAcrossClues = (board: Square[][], clues: string[]) => {
-    const acrossClues = createClueArray(clues);
-    let currentClue = 0;
-    let prevSquare: Square | undefined;
-    board.forEach((row, _) => {
-      row.forEach((square, _) => {
-        currentClue = shouldIncrementAcross(currentClue, square, prevSquare);
-        if (square.squareType !== SquareType.BLACK)
-          square.acrossQuestion = acrossClues[currentClue].hint;
-        prevSquare = square;
-      });
-    });
-  };
-
-  const populateDownClues = (board: Square[][], clues: string[]) => {
-    const downClues = createClueArray(clues);
-    let currentClue = 0;
+  const populateAcrossClues = (board: Square[][], acrossClues: Clue[]) => {
+    let currentClue = getClueByQuestionNumber(
+      acrossClues,
+      board[0][0].gridnumber
+    );
+    let currentState = PopulationState.WRITING;
     board.forEach((row, rowIndex) => {
-      row.forEach((_, colIndex) => {
-        const square = board[colIndex][rowIndex];
-        if (colIndex === 0) {
-          currentClue = square.gridnumber ?? -1;
-          square.downQuestion = downClues.find(
-            (clue) => clue.number == currentClue
-          )?.hint;
-        } else if (square.squareType === SquareType.BLACK) {
-          try {
-            currentClue = board[colIndex + 1][rowIndex].gridnumber!;
-          } catch (error) {
-            currentClue = board[0][rowIndex + 1].gridnumber!;
-          }
-        } else {
-          square.downQuestion = downClues.find(
-            (clue) => clue.number == currentClue
-          )?.hint;
+      row.forEach((square) => {
+        if (square.squareType === SquareType.BLACK) {
+          currentState = PopulationState.READING;
+        } else if (rowIndex === 0) {
+          currentState = PopulationState.WRITING;
+          currentClue = getClueByQuestionNumber(acrossClues, square.gridnumber);
+        } else if (currentState === PopulationState.READING) {
+          currentState = PopulationState.WRITING;
+          currentClue = getClueByQuestionNumber(acrossClues, square.gridnumber);
+        }
+
+        if (currentState === PopulationState.WRITING) {
+          square.acrossQuestion = currentClue?.hint;
         }
       });
     });
-    // there's some bug where the first down clue doesn't populate, so sorta hacking this in
-    board[0][0].downQuestion = downClues[0].hint;
+  };
+
+  function getClueByQuestionNumber(
+    clueList: Clue[],
+    questionNumber: number | null
+  ) {
+    return clueList.find((clue) => clue.number == questionNumber);
+  }
+
+  const populateDownClues = (board: Square[][], downClues: Clue[]) => {
+    let currentClue = getClueByQuestionNumber(
+      downClues,
+      board[0][0].gridnumber
+    );
+    let currentState = PopulationState.WRITING;
+    board.forEach((row, rowIndex) => {
+      row.forEach((_, colIndex) => {
+        const square = board[colIndex][rowIndex];
+
+        if (square.squareType === SquareType.BLACK) {
+          currentState = PopulationState.READING;
+        } else if (colIndex === 0) {
+          currentState = PopulationState.WRITING;
+          currentClue = getClueByQuestionNumber(downClues, square.gridnumber);
+        } else if (currentState === PopulationState.READING) {
+          currentState = PopulationState.WRITING;
+          currentClue = getClueByQuestionNumber(downClues, square.gridnumber);
+        }
+
+        if (currentState === PopulationState.WRITING) {
+          square.downQuestion = currentClue?.hint;
+        }
+      });
+    });
   };
 
   const formatRoom = (data: Room) => {
