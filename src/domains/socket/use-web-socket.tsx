@@ -71,7 +71,6 @@ export interface Square {
   gridnumber: number | null;
   x: number;
   y: number;
-  isHilighted: boolean;
   downQuestion?: string;
   acrossQuestion?: string;
 }
@@ -107,10 +106,6 @@ export const useGame = () => {
   const { set, clear: clearRoomId } = useSession(StorageKeys.ROOM_ID);
   const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
   const [board, setBoard] = useState<Square[][] | null>(null);
-  const [clues, setClues] = useState<{
-    downClues: string[];
-    acrossClues: string[];
-  }>();
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
 
@@ -144,7 +139,6 @@ export const useGame = () => {
             ? data.crossword.gridnums[index]
             : null,
         letter: letterCharacter !== "*" ? letterCharacter : undefined,
-        isHilighted: false,
       } as Square;
     });
   };
@@ -190,8 +184,6 @@ export const useGame = () => {
     let currentState = PopulatingState.WRITING;
     board.forEach((row, _) => {
       row.forEach((square, rowIndex) => {
-        console.log(rowIndex);
-
         if (square.squareType === SquareType.BLACK) {
           currentState = PopulatingState.READING;
         } else if (rowIndex === 0) {
@@ -240,10 +232,6 @@ export const useGame = () => {
     const squares = createSquares(data);
     const board = createBoard(squares, data.crossword.row_size);
     addCluesToSquares(board, data.crossword.clues);
-    setClues({
-      downClues: data.crossword.clues.down,
-      acrossClues: data.crossword.clues.across,
-    });
     setBoard(board);
     setSessionData({
       createdAt: data.created_at,
@@ -330,6 +318,5 @@ export const useGame = () => {
     board,
     sessionData,
     players,
-    clues,
   };
 };

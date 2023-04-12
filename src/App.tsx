@@ -24,7 +24,6 @@ function App() {
     guess,
     players,
     board,
-    clues,
     sessionData,
     loadRoom,
     joinRoom,
@@ -64,7 +63,6 @@ function App() {
           getSquareById={getSquareById}
           players={players}
           board={board}
-          clues={clues}
           sessionData={sessionData}
         />
       );
