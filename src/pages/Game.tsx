@@ -344,7 +344,7 @@ export const SquareProvider: React.FC<{
         />
       );
     case SquareType.CIRCLE_SOLVED:
-      return <SolvedSquare square={square} />;
+      return <SolvedCircleSquare square={square} />;
   }
 };
 
@@ -393,8 +393,31 @@ export const BlankSquare: React.FC<{
 export const SolvedSquare: React.FC<{ square: Square }> = ({ square }) => {
   return (
     <SquareContainer gridNumber={square.gridnumber}>
-      <div style={{ paddingTop: "10%", fontWeight: "bolder" }}>
-        {square.letter?.toUpperCase()}
+        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: "bolder" }}>
+          {square.letter?.toUpperCase()}
+        </div>
+    </SquareContainer>
+  );
+};
+
+export const SolvedCircleSquare: React.FC<{ square: Square }> = ({
+  square,
+}) => {
+  return (
+    <SquareContainer gridNumber={square.gridnumber}>
+      <div
+        style={{
+          display: "float",
+          height: "100%",
+          width: "100%",
+          border: "1px solid black",
+          borderRadius: "50%",
+          textAlign: "center",
+        }}
+      >
+        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: "bolder" }}>
+          {square.letter?.toUpperCase()}
+        </div>
       </div>
     </SquareContainer>
   );
