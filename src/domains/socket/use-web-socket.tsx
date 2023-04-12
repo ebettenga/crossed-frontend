@@ -97,7 +97,7 @@ export interface Guess {
   user_id: number;
 }
 
-enum PopulationState {
+enum PopulatingState {
   READING,
   WRITING,
 }
@@ -187,22 +187,22 @@ export const useGame = () => {
       acrossClues,
       board[0][0].gridnumber
     );
-    let currentState = PopulationState.WRITING;
+    let currentState = PopulatingState.WRITING;
     board.forEach((row, _) => {
       row.forEach((square, rowIndex) => {
         console.log(rowIndex);
-        
+
         if (square.squareType === SquareType.BLACK) {
-          currentState = PopulationState.READING;
+          currentState = PopulatingState.READING;
         } else if (rowIndex === 0) {
-          currentState = PopulationState.WRITING;
+          currentState = PopulatingState.WRITING;
           currentClue = getClueByQuestionNumber(acrossClues, square.gridnumber);
-        } else if (currentState === PopulationState.READING) {
-          currentState = PopulationState.WRITING;
+        } else if (currentState === PopulatingState.READING) {
+          currentState = PopulatingState.WRITING;
           currentClue = getClueByQuestionNumber(acrossClues, square.gridnumber);
         }
 
-        if (currentState === PopulationState.WRITING) {
+        if (currentState === PopulatingState.WRITING) {
           square.acrossQuestion = currentClue?.hint;
         }
       });
@@ -214,22 +214,22 @@ export const useGame = () => {
       downClues,
       board[0][0].gridnumber
     );
-    let currentState = PopulationState.WRITING;
+    let currentState = PopulatingState.WRITING;
     board.forEach((row, rowIndex) => {
       row.forEach((_, colIndex) => {
         const square = board[colIndex][rowIndex];
 
         if (square.squareType === SquareType.BLACK) {
-          currentState = PopulationState.READING;
+          currentState = PopulatingState.READING;
         } else if (colIndex === 0) {
-          currentState = PopulationState.WRITING;
+          currentState = PopulatingState.WRITING;
           currentClue = getClueByQuestionNumber(downClues, square.gridnumber);
-        } else if (currentState === PopulationState.READING) {
-          currentState = PopulationState.WRITING;
+        } else if (currentState === PopulatingState.READING) {
+          currentState = PopulatingState.WRITING;
           currentClue = getClueByQuestionNumber(downClues, square.gridnumber);
         }
 
-        if (currentState === PopulationState.WRITING) {
+        if (currentState === PopulatingState.WRITING) {
           square.downQuestion = currentClue?.hint;
         }
       });
