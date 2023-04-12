@@ -107,8 +107,10 @@ export const useGame = () => {
   const { set, clear: clearRoomId } = useSession(StorageKeys.ROOM_ID);
   const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
   const [board, setBoard] = useState<Square[][] | null>(null);
-  const [downClues, setDownClues] = useState<string[]>([]);
-  const [acrossClues, setAcrossClues] = useState<string[]>([]);
+  const [clues, setClues] = useState<{
+    downClues: string[];
+    acrossClues: string[];
+  }>();
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
 
@@ -173,14 +175,23 @@ export const useGame = () => {
     populateDownClues(board, createClueArray(down));
   };
 
+  function getClueByQuestionNumber(
+    clueList: Clue[],
+    questionNumber: number | null
+  ) {
+    return clueList.find((clue) => clue.number == questionNumber);
+  }
+
   const populateAcrossClues = (board: Square[][], acrossClues: Clue[]) => {
     let currentClue = getClueByQuestionNumber(
       acrossClues,
       board[0][0].gridnumber
     );
     let currentState = PopulationState.WRITING;
-    board.forEach((row, rowIndex) => {
-      row.forEach((square) => {
+    board.forEach((row, _) => {
+      row.forEach((square, rowIndex) => {
+        console.log(rowIndex);
+        
         if (square.squareType === SquareType.BLACK) {
           currentState = PopulationState.READING;
         } else if (rowIndex === 0) {
@@ -197,13 +208,6 @@ export const useGame = () => {
       });
     });
   };
-
-  function getClueByQuestionNumber(
-    clueList: Clue[],
-    questionNumber: number | null
-  ) {
-    return clueList.find((clue) => clue.number == questionNumber);
-  }
 
   const populateDownClues = (board: Square[][], downClues: Clue[]) => {
     let currentClue = getClueByQuestionNumber(
@@ -234,11 +238,12 @@ export const useGame = () => {
 
   const formatRoom = (data: Room) => {
     const squares = createSquares(data);
-
     const board = createBoard(squares, data.crossword.row_size);
     addCluesToSquares(board, data.crossword.clues);
-    setAcrossClues(data.crossword.clues.across);
-    setDownClues(data.crossword.clues.down);
+    setClues({
+      downClues: data.crossword.clues.down,
+      acrossClues: data.crossword.clues.across,
+    });
     setBoard(board);
     setSessionData({
       createdAt: data.created_at,
@@ -325,9 +330,6 @@ export const useGame = () => {
     board,
     sessionData,
     players,
-    clues: {
-      downClues,
-      acrossClues,
-    },
+    clues,
   };
 };
