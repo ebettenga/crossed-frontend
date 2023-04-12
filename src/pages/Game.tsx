@@ -34,7 +34,6 @@ export const GamePage = ({
   getSquareById: (squareId: number) => Square | undefined;
   players: Player[];
   sessionData: SessionData;
-  clues: { downClues: string[]; acrossClues: string[] };
 }) => {
   const sm = useMediaQuery("sm");
   const md = useMediaQuery("md");
