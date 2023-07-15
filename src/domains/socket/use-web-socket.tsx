@@ -1,5 +1,5 @@
 import { useAuth0 } from "@auth0/auth0-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { PageState } from "../../App";
 import { StorageKeys, useSession } from "../../hooks/use-session";
@@ -104,7 +104,7 @@ enum PopulatingState {
 export const useGame = () => {
   const { getAccessTokenSilently } = useAuth0();
   const { set, clear: clearRoomId } = useSession(StorageKeys.ROOM_ID);
-  const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
+  const socketInstance = useRef<Socket>();
   const [board, setBoard] = useState<Square[][] | null>(null);
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -252,13 +252,13 @@ export const useGame = () => {
 
   const joinRoom = (joinRoomObject: JoinRoomPayload) => {
     if (socketInstance) {
-      socketInstance.emit("join", joinRoomObject);
+      socketInstance.current?.emit("join", joinRoomObject);
     }
   };
 
   const guess = (guess: Guess) => {
     if (socketInstance) {
-      socketInstance.emit("message", guess);
+      socketInstance.current?.emit("message", guess);
     }
   };
 
@@ -278,7 +278,7 @@ export const useGame = () => {
           .then((data) => data.json() as Promise<Room>)
           .then((roomData) => {
             formatRoom(roomData);
-            socketInstance?.emit("load_room", roomId);
+            socketInstance.current?.emit("load_room", roomId);
             setPageState(PageState.PLAYING);
           });
       });
@@ -286,27 +286,27 @@ export const useGame = () => {
   };
 
   useEffect(() => {
-    if (!socketInstance) {
+    console.log(socketInstance.current);
+    if (!socketInstance.current) {
       const socket = io(BASE_URL, {
         transports: ["websocket"],
       });
-
-      setSocketInstance(socket);
+      socketInstance.current = socket;
     }
     if (socketInstance) {
-      socketInstance.on("room_joined", (data: Room) => {
+      socketInstance.current?.on("room_joined", (data: Room) => {
         formatRoom(data);
         set(data.id.toString());
       });
 
-      socketInstance.on("message", (data: RoomResponse) => {
+      socketInstance.current?.on("message", (data: RoomResponse) => {
         formatRoom(data.message);
         !data.message.found_letters.includes("*") && clearRoomId();
       });
     }
 
     return function cleanup() {
-      socketInstance?.disconnect();
+      socketInstance.current?.disconnect();
     };
   }, [socketInstance]);
 

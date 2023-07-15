@@ -5,7 +5,7 @@
   "type": "module",
   "proxy": "http://localhost:5000/",
   "scripts": {
-    "dev": "cross-env vite --host",
+    "dev": "PORT=3000 cross-env vite --host",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
