@@ -59,8 +59,8 @@ export const useCurrentUser = () => {
   };
 
   useEffect(() => {
-    isAuthenticated && !user && updateUser();
-  }, [isAuthenticated]);
+    isAuthenticated && !user && !isLoading && updateUser();
+  }, [isAuthenticated, isLoading]);
 
   return { user, login, isLoading };
 };
