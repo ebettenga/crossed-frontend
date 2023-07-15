@@ -6,7 +6,7 @@
   "proxy": "http://localhost:5000/",
   "scripts": {
     "dev": "PORT=3000 cross-env vite --host",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build --omit=dev",
     "preview": "vite preview",
     "start": "serve dist -s -n -L -p $PORT"
   },
